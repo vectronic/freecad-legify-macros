@@ -1,0 +1,5 @@
+# coding: UTF-8
+
+from Legify import Brick
+
+Brick.Dialog()
