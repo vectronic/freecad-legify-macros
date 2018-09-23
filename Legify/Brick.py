@@ -20,18 +20,67 @@ class BrickRenderer(object):
             self._parse_pins(pins)
             self._parse_holes(holes)
 
+            self.doc = FreeCAD.activeDocument()
+            self.body = self.doc.addObject("PartDesign::Body", "body")
+
         except Exception as inst:
             Console.PrintError(inst)
+
+    def _create_datum_planes(self):
+        Console.PrintMessage("_create_datum_planes()\n")
+
+        # Create top datum plane
+        top_datum_plane = self.body.newObject("PartDesign::Plane", "top_datum_plane")
+        top_datum_plane.MapReversed = False
+        top_datum_plane.Support = [(self.doc.XY_Plane, '')]
+        top_datum_plane.MapMode = 'FlatFace'
+        top_datum_plane.AttachmentOffset = FreeCAD.Placement(
+            FreeCAD.Vector(0, 0, (self.brick_height * DIMS_PLATE_HEIGHT)),
+            FreeCAD.Rotation(0, 0, 0))
+        top_datum_plane.ViewObject.Visibility = False
+
+        # Create top inside datum plane
+        top_inside_datum_plane = self.body.newObject("PartDesign::Plane", "top_inside_datum_plane")
+        top_inside_datum_plane.MapReversed = False
+        top_inside_datum_plane.Support = [(self.doc.XY_Plane, '')]
+        top_inside_datum_plane.MapMode = 'FlatFace'
+        top_inside_datum_plane.AttachmentOffset = FreeCAD.Placement(
+            FreeCAD.Vector(0, 0, (self.brick_height * DIMS_PLATE_HEIGHT) - DIMS_TOP_THICKNESS),
+            FreeCAD.Rotation(0, 0, 0))
+        top_inside_datum_plane.ViewObject.Visibility = False
+
+        # Create front inside datum plane
+        front_inside_datum_plane = self.body.newObject("PartDesign::Plane", "front_inside_datum_plane")
+        front_inside_datum_plane.MapReversed = False
+        front_inside_datum_plane.Support = [(self.doc.XZ_Plane, '')]
+        front_inside_datum_plane.MapMode = 'FlatFace'
+        front_inside_datum_plane.AttachmentOffset = FreeCAD.Placement(
+            FreeCAD.Vector(0, 0, DIMS_HALF_STUD_WIDTH_OUTER - DIMS_SIDE_THICKNESS),
+            FreeCAD.Rotation(0, 0, 0))
+        front_inside_datum_plane.ViewObject.Visibility = False
+
+        # Create side inside datum plane
+        side_inside_datum_plane = self.body.newObject("PartDesign::Plane", "side_inside_datum_plane")
+        side_inside_datum_plane.MapReversed = False
+        side_inside_datum_plane.Support = [(self.doc.YZ_Plane, '')]
+        side_inside_datum_plane.MapMode = 'FlatFace'
+        side_inside_datum_plane.AttachmentOffset = FreeCAD.Placement(
+            FreeCAD.Vector(0, 0, -1 * (DIMS_HALF_STUD_WIDTH_OUTER - DIMS_SIDE_THICKNESS)),
+            FreeCAD.Rotation(0, 0, 0))
+        side_inside_datum_plane.ViewObject.Visibility = False
 
     def render(self):
 
         try:
+            self._create_datum_planes()
 
             BodyRenderer(self.brick_width, self.brick_depth, self.brick_height,
                          self.hole_style, False if self.hole_style == HoleStyle.NONE else self.holes_offset).render()
 
             if self.top_stud_style != TopStudStyle.NONE:
-                TopStudsRenderer().render()
+                TopStudsRenderer(self.brick_width, self.brick_depth, self.top_stud_style,
+                                 self.top_studs_width_count, self.top_studs_width_offset,
+                                 self.top_studs_depth_count, self.top_studs_depth_offset).render()
 
             if self.side_stud_style != SideStudStyle.NONE:
                 SideStudsRenderer().render()
@@ -41,6 +90,8 @@ class BrickRenderer(object):
 
             if self.hole_style != HoleStyle.NONE:
                 HolesRenderer().render()
+
+            self.body.Tip.ViewObject.Visibility = True
 
         except Exception as inst:
             Console.PrintError(inst)

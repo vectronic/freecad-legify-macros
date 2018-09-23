@@ -8,19 +8,18 @@ from Legify.Common import *
 
 class BodyRenderer(object):
 
-    def __init__(self, width, depth, height, hole_style, holes_offset):
+    def __init__(self, brick_width, brick_depth, brick_height, hole_style, holes_offset):
         Console.PrintMessage("BodyRenderer\n")
 
-        self.brick_width = width
-        self.brick_depth = depth
-        self.brick_height = height
+        self.brick_width = brick_width
+        self.brick_depth = brick_depth
+        self.brick_height = brick_height
 
         self.hole_style = hole_style
         self.holes_offset = holes_offset
 
         self.doc = FreeCAD.activeDocument()
-
-        self.body = self.doc.addObject("PartDesign::Body", "body")
+        self.body = self.doc.body
 
     @staticmethod
     def _add_horizontal_sketch_segment(geometries, constraints, length, hor_vec_start, hor_vec_end, reverse):
@@ -166,6 +165,17 @@ class BodyRenderer(object):
         constraints.append(Sketcher.Constraint("Coincident", segment_count + 2, 2, segment_count + 3, 1))
         constraints.append(Sketcher.Constraint("Coincident", segment_count + 3, 2, segment_count, 1))
 
+    @staticmethod
+    def _add_tube_circle_sketch(geometries, constraints):
+        Console.PrintMessage("_add_tube_circle_sketch()\n")
+
+        geometries.append(Part.Circle())
+        constraints.append(Sketcher.Constraint("Radius", 0, DIMS_TUBE_OUTER_RADIUS))
+        # -1, 1 chooses the origin point
+        constraints.append(Sketcher.Constraint("DistanceX", 0, 3, -1, 1, -0.5 * DIMS_STUD_WIDTH_INNER))
+        # -1, 1 chooses the origin point
+        constraints.append(Sketcher.Constraint("DistanceY", 0, 3, -1, 1, -0.5 * DIMS_STUD_WIDTH_INNER))
+
     def _render_body_pad_and_fillets(self):
         Console.PrintMessage("_render_body_pad_and_edge_fillets()\n")
 
@@ -216,7 +226,6 @@ class BodyRenderer(object):
         body_pad.Length = self.brick_height * DIMS_PLATE_HEIGHT
 
         body_pad_sketch.ViewObject.Visibility = False
-        body_pad.ViewObject.Visibility = False
         self.doc.recompute()
 
         # edge fillets
@@ -228,10 +237,9 @@ class BodyRenderer(object):
         body_edge_fillets.Radius = 0.1
         body_edge_fillets.Base = (body_pad, edge_names)
 
-        body_edge_fillets.ViewObject.Visibility = False
         self.doc.recompute()
 
-        # TODO: support bottom fillet (for tiles only)
+        # TODO: support bottom outside pocket (for tiles only), fillet required?
 
     def _render_body_pocket(self):
         Console.PrintMessage("_render_body_pocket()\n")
@@ -397,7 +405,6 @@ class BodyRenderer(object):
         body_pocket.Reversed = True
 
         body_pocket_sketch.ViewObject.Visibility = False
-        body_pocket.ViewObject.Visibility = False
         self.doc.recompute()
 
     def _render_tube_ribs(self):
@@ -446,7 +453,6 @@ class BodyRenderer(object):
                                          (2 * DIMS_HALF_STUD_WIDTH_OUTER) - (2 * DIMS_SIDE_THICKNESS)
 
             front_tube_ribs_sketch.ViewObject.Visibility = False
-            front_tube_ribs_pad.ViewObject.Visibility = False
 
         if self.brick_depth > 2:
             side_tube_ribs_sketch = self.body.newObject("Sketcher::SketchObject", "side_tube_ribs_sketch")
@@ -490,20 +496,8 @@ class BodyRenderer(object):
                                         (2 * DIMS_HALF_STUD_WIDTH_OUTER) - (2 * DIMS_SIDE_THICKNESS)
 
             side_tube_ribs_sketch.ViewObject.Visibility = False
-            side_tube_ribs_pad.ViewObject.Visibility = False
 
         self.doc.recompute()
-
-    @staticmethod
-    def _add_tube_circle_sketch(geometries, constraints):
-        Console.PrintMessage("_add_tube_circle_sketch()\n")
-
-        geometries.append(Part.Circle())
-        constraints.append(Sketcher.Constraint("Radius", 0, DIMS_TUBE_OUTER_RADIUS))
-        # -1, 1 chooses the origin point
-        constraints.append(Sketcher.Constraint("DistanceX", 0, 3, -1, 1, -0.5 * DIMS_STUD_WIDTH_INNER))
-        # -1, 1 chooses the origin point
-        constraints.append(Sketcher.Constraint("DistanceY", 0, 3, -1, 1, -0.5 * DIMS_STUD_WIDTH_INNER))
 
     def _render_tubes(self):
         Console.PrintMessage("_render_tubes()\n")
@@ -552,7 +546,6 @@ class BodyRenderer(object):
                             - DIMS_TOP_THICKNESS - DIMS_STICK_AND_TUBE_BOTTOM_OFFSET)
 
         tubes_pad_sketch.ViewObject.Visibility = False
-        tubes_pad.ViewObject.Visibility = False
         self.doc.recompute()
 
         # tubes pocket
@@ -742,7 +735,6 @@ class BodyRenderer(object):
         stick_ribs_pad.Length = (2 * DIMS_HALF_STUD_WIDTH_OUTER) - (2 * DIMS_SIDE_THICKNESS)
 
         stick_ribs_sketch.ViewObject.Visibility = False
-        stick_ribs_pad.ViewObject.Visibility = False
 
         self.doc.recompute()
 
@@ -834,7 +826,6 @@ class BodyRenderer(object):
                                     - DIMS_TOP_THICKNESS - DIMS_STICK_AND_TUBE_BOTTOM_OFFSET)
 
             sticks_pocket_sketch.ViewObject.Visibility = False
-            sticks_pad.ViewObject.Visibility = False
 
         self.doc.recompute()
 
@@ -860,53 +851,8 @@ class BodyRenderer(object):
         if sticks:
             self._render_sticks(hollow_sticks)
 
-    def _create_datum_planes(self):
-        Console.PrintMessage("_create_datum_planes()\n")
-
-        # Create top datum plane
-        top_datum_plane = self.body.newObject("PartDesign::Plane", "top_datum_plane")
-        top_datum_plane.MapReversed = False
-        top_datum_plane.Support = [(self.doc.XY_Plane, '')]
-        top_datum_plane.MapMode = 'FlatFace'
-        top_datum_plane.AttachmentOffset = FreeCAD.Placement(
-            FreeCAD.Vector(0, 0, (self.brick_height * DIMS_PLATE_HEIGHT)),
-            FreeCAD.Rotation(0, 0, 0))
-        top_datum_plane.ViewObject.Visibility = False
-
-        # Create top inside datum plane
-        top_inside_datum_plane = self.body.newObject("PartDesign::Plane", "top_inside_datum_plane")
-        top_inside_datum_plane.MapReversed = False
-        top_inside_datum_plane.Support = [(self.doc.XY_Plane, '')]
-        top_inside_datum_plane.MapMode = 'FlatFace'
-        top_inside_datum_plane.AttachmentOffset = FreeCAD.Placement(
-            FreeCAD.Vector(0, 0, (self.brick_height * DIMS_PLATE_HEIGHT) - DIMS_TOP_THICKNESS),
-            FreeCAD.Rotation(0, 0, 0))
-        top_inside_datum_plane.ViewObject.Visibility = False
-
-        # Create front inside datum plane
-        front_inside_datum_plane = self.body.newObject("PartDesign::Plane", "front_inside_datum_plane")
-        front_inside_datum_plane.MapReversed = False
-        front_inside_datum_plane.Support = [(self.doc.XZ_Plane, '')]
-        front_inside_datum_plane.MapMode = 'FlatFace'
-        front_inside_datum_plane.AttachmentOffset = FreeCAD.Placement(
-            FreeCAD.Vector(0, 0, DIMS_HALF_STUD_WIDTH_OUTER - DIMS_SIDE_THICKNESS),
-            FreeCAD.Rotation(0, 0, 0))
-        front_inside_datum_plane.ViewObject.Visibility = False
-
-        # Create side inside datum plane
-        side_inside_datum_plane = self.body.newObject("PartDesign::Plane", "side_inside_datum_plane")
-        side_inside_datum_plane.MapReversed = False
-        side_inside_datum_plane.Support = [(self.doc.YZ_Plane, '')]
-        side_inside_datum_plane.MapMode = 'FlatFace'
-        side_inside_datum_plane.AttachmentOffset = FreeCAD.Placement(
-            FreeCAD.Vector(0, 0, -1 * (DIMS_HALF_STUD_WIDTH_OUTER - DIMS_SIDE_THICKNESS)),
-            FreeCAD.Rotation(0, 0, 0))
-        side_inside_datum_plane.ViewObject.Visibility = False
-
     def render(self):
         Console.PrintMessage("render\n")
-
-        self._create_datum_planes()
 
         self._render_body_pad_and_fillets()
 
