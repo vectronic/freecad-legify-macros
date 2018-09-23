@@ -1,5 +1,13 @@
 # coding: UTF-8
 
+from FreeCAD import Console, Gui
+from PySide import QtCore, QtGui
 from Legify import Brick
 
-Brick.Dialog()
+if Gui.activeDocument():
+    Brick.Dialog()
+else:
+    Console.PrintMessage("No active document!\n")
+    dialog = QtGui.QMessageBox(QtGui.QMessageBox.Warning, 'No active document!', "There is no active document!")
+    dialog.setWindowModality(QtCore.Qt.ApplicationModal)
+    dialog.exec_()

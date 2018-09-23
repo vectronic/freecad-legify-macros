@@ -1,6 +1,6 @@
 # coding: UTF-8
 
-import FreeCAD
+from FreeCAD import Console, Gui
 from PySide import QtGui, QtCore
 from Legify.Body import *
 from Legify.Holes import *
@@ -21,13 +21,14 @@ class BrickRenderer(object):
             self._parse_holes(holes)
 
         except Exception as inst:
-            FreeCAD.Console.PrintError(inst)
+            Console.PrintError(inst)
 
     def render(self):
 
         try:
 
-            BodyRenderer(self.brick_width, self.brick_depth, self.brick_height).render()
+            BodyRenderer(self.brick_width, self.brick_depth, self.brick_height,
+                         self.hole_style, False if self.hole_style == HoleStyle.NONE else self.holes_offset).render()
 
             if self.top_stud_style != TopStudStyle.NONE:
                 TopStudsRenderer().render()
@@ -42,7 +43,7 @@ class BrickRenderer(object):
                 HolesRenderer().render()
 
         except Exception as inst:
-            FreeCAD.Console.PrintError(inst)
+            Console.PrintError(inst)
 
     def _parse_dimensions(self, dimensions):
 
@@ -61,8 +62,8 @@ class BrickRenderer(object):
         self.brick_depth = depth
         self.brick_height = height
 
-        FreeCAD.Console.PrintMessage("Dimensions: {0}x{1}x{2}\n"
-                                     .format(self.brick_width, self.brick_depth, self.brick_height))
+        Console.PrintMessage("Dimensions: {0}x{1}x{2}\n"
+                             .format(self.brick_width, self.brick_depth, self.brick_height))
 
     def _parse_top_studs(self, top_studs):
 
@@ -75,7 +76,7 @@ class BrickRenderer(object):
 
         if self.top_stud_style == TopStudStyle.NONE:
 
-            FreeCAD.Console.PrintMessage("Top Studs: NONE\n")
+            Console.PrintMessage("Top Studs: NONE\n")
 
         else:
 
@@ -86,13 +87,13 @@ class BrickRenderer(object):
             depth_offset = bool(top_studs["depth_offset"])
 
             if width_offset and self.brick_width == 1:
-                FreeCAD.Console.PrintMessage("top_studs[\"width_offset\"] set to False as "
-                                             "dimensions[\"width\"] == 1\n")
+                Console.PrintMessage("top_studs[\"width_offset\"] set to False as "
+                                     "dimensions[\"width\"] == 1\n")
                 width_offset = False
 
             if depth_offset and self.brick_depth == 1:
-                FreeCAD.Console.PrintMessage("top_studs[\"depth_offset\"] set to False as "
-                                             "dimensions[\"depth\"] == 1\n")
+                Console.PrintMessage("top_studs[\"depth_offset\"] set to False as "
+                                     "dimensions[\"depth\"] == 1\n")
                 depth_offset = False
 
             if width_count < 1 or width_count > (self.brick_width - 1 if width_offset else self.brick_width):
@@ -108,7 +109,7 @@ class BrickRenderer(object):
             self.top_studs_width_offset = width_offset
             self.top_studs_depth_offset = depth_offset
 
-            FreeCAD.Console.PrintMessage("Top Studs: {0} {1}x{2} {3}{4}\n".format(
+            Console.PrintMessage("Top Studs: {0} {1}x{2} {3}{4}\n".format(
                 "CLOSED" if self.top_stud_style == TopStudStyle.CLOSED else "OPEN",
                 self.top_studs_width_count,
                 self.top_studs_depth_count,
@@ -124,8 +125,8 @@ class BrickRenderer(object):
                             "SideStudStyle.NONE|SideStudStyle.CLOSED|SideStudStyle.OPEN|SideStudStyle.HOLE")
 
         if style != SideStudStyle.NONE and self.brick_height < 3:
-            FreeCAD.Console.PrintMessage("side_studs[\"style\"] set to SideStudStyle.NONE as "
-                                         "dimensions[\"width\"] < 3\n")
+            Console.PrintMessage("side_studs[\"style\"] set to SideStudStyle.NONE as "
+                                 "dimensions[\"width\"] < 3\n")
             style = SideStudStyle.NONE
 
         front = bool(side_studs["front"])
@@ -135,15 +136,15 @@ class BrickRenderer(object):
 
         if style != SideStudStyle.NONE and not front and not back and not left and not right:
 
-            FreeCAD.Console.PrintMessage("side_studs[\"style\"] set to SideStudStyle.NONE as "
-                                         "none of Front, Back, Left, Right are True\n")
+            Console.PrintMessage("side_studs[\"style\"] set to SideStudStyle.NONE as "
+                                 "none of Front, Back, Left, Right are True\n")
             style = SideStudStyle.NONE
 
         self.side_stud_style = style
 
         if self.side_stud_style == SideStudStyle.NONE:
 
-            FreeCAD.Console.PrintMessage("Side Studs: NONE\n")
+            Console.PrintMessage("Side Studs: NONE\n")
 
         else:
 
@@ -152,7 +153,7 @@ class BrickRenderer(object):
             self.side_studs_left = left
             self.side_studs_right = right
 
-            FreeCAD.Console.PrintMessage("Side Studs: {0} {1}{2}{3}{4}\n".format(
+            Console.PrintMessage("Side Studs: {0} {1}{2}{3}{4}\n".format(
                 "CLOSED" if self.side_stud_style == SideStudStyle.CLOSED else "OPEN"
                 if self.side_stud_style == SideStudStyle.OPEN else "HOLE",
                 "FRONT " if self.side_studs_front else "",
@@ -168,8 +169,8 @@ class BrickRenderer(object):
             raise Exception("pins[\"style\"] must be: PinStyle.NONE|PinStyle.PIN|PinStyle.AXLE")
 
         if style != PinStyle.NONE and self.brick_height < 3:
-            FreeCAD.Console.PrintMessage("pins[\"style\"] set to PinStyle.NONE as "
-                                         "dimensions[\"width\"] < 3\n")
+            Console.PrintMessage("pins[\"style\"] set to PinStyle.NONE as "
+                                 "dimensions[\"width\"] < 3\n")
             style = PinStyle.NONE
 
         front = bool(pins["front"])
@@ -180,55 +181,55 @@ class BrickRenderer(object):
         if style != PinStyle.NONE and self.side_stud_style != SideStudStyle.NONE:
 
             if front and self.side_studs_front:
-                FreeCAD.Console.PrintMessage("pins[\"front\"] set to False as "
-                                             "side_studs[\"style\"] != SideStudStyle.NONE and "
-                                             "side_studs[\"front\"] == True\n")
+                Console.PrintMessage("pins[\"front\"] set to False as "
+                                     "side_studs[\"style\"] != SideStudStyle.NONE and "
+                                     "side_studs[\"front\"] == True\n")
                 front = False
 
             if back and self.side_studs_back:
-                FreeCAD.Console.PrintMessage("pins[\"back\"] set to False as "
-                                             "side_studs[\"style\"] != SideStudStyle.NONE and "
-                                             "side_studs[\"back\"] == True\n")
+                Console.PrintMessage("pins[\"back\"] set to False as "
+                                     "side_studs[\"style\"] != SideStudStyle.NONE and "
+                                     "side_studs[\"back\"] == True\n")
                 back = False
 
             if left and self.side_studs_left:
 
-                FreeCAD.Console.PrintMessage("pins[\"left\"] set to False as "
-                                             "side_studs[\"style\"] != SideStudStyle.NONE and "
-                                             "side_studs[\"left\"] == True\n")
+                Console.PrintMessage("pins[\"left\"] set to False as "
+                                     "side_studs[\"style\"] != SideStudStyle.NONE and "
+                                     "side_studs[\"left\"] == True\n")
                 left = False
 
             if right and self.side_studs_right:
-                FreeCAD.Console.PrintMessage("pins[\"right\"] set to False as "
-                                             "side_studs[\"style\"] != SideStudStyle.NONE and "
-                                             "side_studs[\"right\"] == True\n")
+                Console.PrintMessage("pins[\"right\"] set to False as "
+                                     "side_studs[\"style\"] != SideStudStyle.NONE and "
+                                     "side_studs[\"right\"] == True\n")
                 right = False
 
         if style != PinStyle.NONE and not front and not back and not left and not right:
 
-            FreeCAD.Console.PrintMessage("pins[\"style\"] set to PinStyle.NONE as "
-                                         "none of Front, Back, Left, Right are True\n")
+            Console.PrintMessage("pins[\"style\"] set to PinStyle.NONE as "
+                                 "none of Front, Back, Left, Right are True\n")
             style = PinStyle.NONE
 
         offset = bool(pins["offset"])
 
         if offset and (left or right) and self.brick_width == 1:
 
-            FreeCAD.Console.PrintMessage("pins[\"offset\"] set to False as "
-                                         "Left or Right are True and dimensions[\"width\"] == 1\n")
+            Console.PrintMessage("pins[\"offset\"] set to False as "
+                                 "Left or Right are True and dimensions[\"width\"] == 1\n")
             style = PinStyle.NONE
 
         if offset and (front or back) and self.brick_depth == 1:
 
-            FreeCAD.Console.PrintMessage("pins[\"offset\"] set to False as "
-                                         "Front or Back are True and dimensions[\"depth\"] == 1\n")
+            Console.PrintMessage("pins[\"offset\"] set to False as "
+                                 "Front or Back are True and dimensions[\"depth\"] == 1\n")
             style = PinStyle.NONE
 
         self.pin_style = style
 
         if self.pin_style == PinStyle.NONE:
 
-            FreeCAD.Console.PrintMessage("Pins: NONE\n")
+            Console.PrintMessage("Pins: NONE\n")
 
         else:
 
@@ -239,7 +240,7 @@ class BrickRenderer(object):
 
             self.pins_offset = offset
 
-            FreeCAD.Console.PrintMessage("Pins: {0} {1}{2}{3}{4}{5}\n".format(
+            Console.PrintMessage("Pins: {0} {1}{2}{3}{4}{5}\n".format(
                 "NONE" if self.pin_style == PinStyle.NONE else "PIN" if self.pin_style == PinStyle.PIN else "AXLE",
                 "FRONT " if self.pins_front else "",
                 "BACK " if self.pins_back else "",
@@ -255,46 +256,46 @@ class BrickRenderer(object):
             raise Exception("holes[\"style\"] must be: HoleStyle.NONE|HoleStyle.HOLE|HoleStyle.AXLE")
 
         if style != HoleStyle.NONE and self.brick_height < 3:
-            FreeCAD.Console.PrintMessage("holes[\"style\"] set to HoleStyle.NONE as "
-                                         "dimensions[\"width\"] < 3\n")
+            Console.PrintMessage("holes[\"style\"] set to HoleStyle.NONE as "
+                                 "dimensions[\"width\"] < 3\n")
             style = HoleStyle.NONE
 
         if style != HoleStyle.NONE and self.side_stud_style != SideStudStyle.NONE:
 
             if self.side_studs_left or self.side_studs_right:
 
-                FreeCAD.Console.PrintMessage("holes[\"style\"] set to HoleStyle.NONE as "
-                                             "side_studs[\"style\"] != SideStudStyle.NONE and "
-                                             "side_studs[\"left\"] == True or side_studs[\"right\"] == True\n")
+                Console.PrintMessage("holes[\"style\"] set to HoleStyle.NONE as "
+                                     "side_studs[\"style\"] != SideStudStyle.NONE and "
+                                     "side_studs[\"left\"] == True or side_studs[\"right\"] == True\n")
                 style = HoleStyle.NONE
 
         if style != HoleStyle.NONE and self.pin_style != PinStyle.NONE:
 
             if self.pins_left or self.pins_right:
 
-                FreeCAD.Console.PrintMessage("holes[\"style\"] set to HoleStyle.NONE as "
-                                             "pins[\"style\"] != PinStyle.NONE and "
-                                             "pins[\"left\"] == True or pins[\"right\"] == True\n")
+                Console.PrintMessage("holes[\"style\"] set to HoleStyle.NONE as "
+                                     "pins[\"style\"] != PinStyle.NONE and "
+                                     "pins[\"left\"] == True or pins[\"right\"] == True\n")
                 style = HoleStyle.NONE
 
         offset = bool(holes["offset"])
 
         if offset and self.brick_width == 1:
-            FreeCAD.Console.PrintMessage("holes[\"offset\"] set to False as "
-                                         "dimensions[\"width\"] == 1\n")
+            Console.PrintMessage("holes[\"offset\"] set to False as "
+                                 "dimensions[\"width\"] == 1\n")
             offset = False
 
         self.hole_style = style
 
         if self.hole_style == HoleStyle.NONE:
 
-            FreeCAD.Console.PrintMessage("Holes: NONE\n")
+            Console.PrintMessage("Holes: NONE\n")
 
         else:
 
             self.holes_offset = offset
 
-            FreeCAD.Console.PrintMessage("Holes: {0} {1}\n".format(
+            Console.PrintMessage("Holes: {0} {1}\n".format(
                 "NONE" if self.hole_style == HoleStyle.NONE else "HOLE"
                 if self.hole_style == HoleStyle.HOLE else "AXLE",
                 "OFFSET" if self.holes_offset else ""))
@@ -878,6 +879,9 @@ class Dialog:
         ])
 
         BrickRenderer(dimensions, top_studs, side_studs, pins, holes).render()
+
+        Gui.activeDocument().activeView().viewAxonometric()
+        Gui.SendMsgToActiveView("ViewFit")
 
     def on_cancel_clicked(self):
         self.dialog.close()

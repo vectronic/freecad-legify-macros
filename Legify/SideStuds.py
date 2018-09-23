@@ -1,14 +1,14 @@
 # coding: UTF-8
 
-import FreeCAD
+from FreeCAD import Console
 from Legify.Common import *
 
 
 class SideStudsRenderer(object):
 
     def __init__(self):
-        FreeCAD.Console.PrintMessage("SideStudsRenderer\n")
+        Console.PrintMessage("SideStudsRenderer\n")
 
     def render(self):
-        FreeCAD.Console.PrintMessage("render\n")
+        Console.PrintMessage("render\n")
         # TODO: render side studs
