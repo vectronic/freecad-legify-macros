@@ -21,7 +21,7 @@ class BrickRenderer(object):
             self._parse_holes(holes)
 
             self.doc = FreeCAD.activeDocument()
-            self.body = self.doc.addObject("PartDesign::Body", "body")
+            self.brick = self.doc.addObject("PartDesign::Body", "brick")
 
         except Exception as inst:
             Console.PrintError(inst)
@@ -30,7 +30,7 @@ class BrickRenderer(object):
         Console.PrintMessage("_create_datum_planes()\n")
 
         # Create top datum plane
-        top_datum_plane = self.body.newObject("PartDesign::Plane", "top_datum_plane")
+        top_datum_plane = self.brick.newObject("PartDesign::Plane", "top_datum_plane")
         top_datum_plane.MapReversed = False
         top_datum_plane.Support = [(self.doc.XY_Plane, '')]
         top_datum_plane.MapMode = 'FlatFace'
@@ -40,7 +40,7 @@ class BrickRenderer(object):
         top_datum_plane.ViewObject.Visibility = False
 
         # Create top inside datum plane
-        top_inside_datum_plane = self.body.newObject("PartDesign::Plane", "top_inside_datum_plane")
+        top_inside_datum_plane = self.brick.newObject("PartDesign::Plane", "top_inside_datum_plane")
         top_inside_datum_plane.MapReversed = False
         top_inside_datum_plane.Support = [(self.doc.XY_Plane, '')]
         top_inside_datum_plane.MapMode = 'FlatFace'
@@ -50,7 +50,7 @@ class BrickRenderer(object):
         top_inside_datum_plane.ViewObject.Visibility = False
 
         # Create front inside datum plane
-        front_inside_datum_plane = self.body.newObject("PartDesign::Plane", "front_inside_datum_plane")
+        front_inside_datum_plane = self.brick.newObject("PartDesign::Plane", "front_inside_datum_plane")
         front_inside_datum_plane.MapReversed = False
         front_inside_datum_plane.Support = [(self.doc.XZ_Plane, '')]
         front_inside_datum_plane.MapMode = 'FlatFace'
@@ -60,7 +60,7 @@ class BrickRenderer(object):
         front_inside_datum_plane.ViewObject.Visibility = False
 
         # Create side inside datum plane
-        side_inside_datum_plane = self.body.newObject("PartDesign::Plane", "side_inside_datum_plane")
+        side_inside_datum_plane = self.brick.newObject("PartDesign::Plane", "side_inside_datum_plane")
         side_inside_datum_plane.MapReversed = False
         side_inside_datum_plane.Support = [(self.doc.YZ_Plane, '')]
         side_inside_datum_plane.MapMode = 'FlatFace'
@@ -79,8 +79,7 @@ class BrickRenderer(object):
 
             if self.top_stud_style != TopStudStyle.NONE:
                 TopStudsRenderer(self.brick_width, self.brick_depth, self.top_stud_style,
-                                 self.top_studs_width_count, self.top_studs_width_offset,
-                                 self.top_studs_depth_count, self.top_studs_depth_offset).render()
+                                 self.top_studs_width_count, self.top_studs_depth_count).render()
 
             if self.side_stud_style != SideStudStyle.NONE:
                 SideStudsRenderer().render()
@@ -91,7 +90,7 @@ class BrickRenderer(object):
             if self.hole_style != HoleStyle.NONE:
                 HolesRenderer().render()
 
-            self.body.Tip.ViewObject.Visibility = True
+            self.brick.Tip.ViewObject.Visibility = True
 
         except Exception as inst:
             Console.PrintError(inst)
@@ -134,38 +133,19 @@ class BrickRenderer(object):
             width_count = int(top_studs["width_count"])
             depth_count = int(top_studs["depth_count"])
 
-            width_offset = bool(top_studs["width_offset"])
-            depth_offset = bool(top_studs["depth_offset"])
+            if width_count < 1 or width_count > self.brick_width:
+                raise Exception("top_studs[\"width_count\"] must be: 1..dimensions[\"width\"]")
 
-            if width_offset and self.brick_width == 1:
-                Console.PrintMessage("top_studs[\"width_offset\"] set to False as "
-                                     "dimensions[\"width\"] == 1\n")
-                width_offset = False
-
-            if depth_offset and self.brick_depth == 1:
-                Console.PrintMessage("top_studs[\"depth_offset\"] set to False as "
-                                     "dimensions[\"depth\"] == 1\n")
-                depth_offset = False
-
-            if width_count < 1 or width_count > (self.brick_width - 1 if width_offset else self.brick_width):
-                raise Exception("top_studs[\"width_count\"] must be: 1..dimensions[\"width\"] or "
-                                "1..dimensions[\"width\"]-1 if top_studs[\"width_offset\"] == true")
-
-            if depth_count < 1 or depth_count > (self.brick_depth - 1 if depth_offset else self.brick_depth):
-                raise Exception("top_studs[\"depth_count\"] must be: 1..dimensions[\"depth\"] or "
-                                "1..dimensions[\"depth\"]-1 if top_studs[\"depth_offset\"] == true")
+            if depth_count < 1 or depth_count > self.brick_depth:
+                raise Exception("top_studs[\"depth_count\"] must be: 1..dimensions[\"depth\"]")
 
             self.top_studs_width_count = width_count
             self.top_studs_depth_count = depth_count
-            self.top_studs_width_offset = width_offset
-            self.top_studs_depth_offset = depth_offset
 
-            Console.PrintMessage("Top Studs: {0} {1}x{2} {3}{4}\n".format(
+            Console.PrintMessage("Top Studs: {0} {1}x{2}\n".format(
                 "CLOSED" if self.top_stud_style == TopStudStyle.CLOSED else "OPEN",
                 self.top_studs_width_count,
-                self.top_studs_depth_count,
-                "WIDTH_OFFSET" if self.top_studs_width_offset else "",
-                "DEPTH_OFFSET " if self.top_studs_depth_offset else ""))
+                self.top_studs_depth_count))
 
     def _parse_side_studs(self, side_studs):
 
@@ -491,7 +471,7 @@ class Dialog:
         top_studs_style_combobox.addItem("Open", TopStudStyle.OPEN)
         top_studs_style_combobox.setFont(self.normal_font)
         top_studs_style_combobox.setMinimumWidth(100)
-
+        top_studs_style_combobox.setCurrentIndex(1)
         top_studs_width_count_label = QtGui.QLabel("Width Count")
         top_studs_width_count_label.setAlignment(QtCore.Qt.AlignRight)
         top_studs_width_count_label.setMinimumWidth(100)
@@ -503,8 +483,7 @@ class Dialog:
         top_studs_width_count_spinbox.setMinimumWidth(70)
 
         top_studs_width_count_note_label = QtGui.QLabel(u"ℹ")
-        top_studs_width_count_note_label.setToolTip("1..dimensions.width\nor\n 1..dimensions.width - 1 if "
-                                                    "top_studs.width_half_stud_offset == True")
+        top_studs_width_count_note_label.setToolTip("1..dimensions.width")
         top_studs_width_count_note_label.setFont(self.note_font)
         top_studs_width_count_note_label.setMinimumWidth(25)
 
@@ -519,30 +498,9 @@ class Dialog:
         top_studs_depth_count_spinbox.setMinimumWidth(70)
 
         top_studs_depth_count_note_label = QtGui.QLabel(u"ℹ")
-        top_studs_depth_count_note_label.setToolTip("1..dimensions.depth\nor\n 1..dimensions.depth - 1 if "
-                                                    "top_studs.depth_half_stud_offset == True")
+        top_studs_depth_count_note_label.setToolTip("1..dimensions.depth")
         top_studs_depth_count_note_label.setFont(self.note_font)
         top_studs_depth_count_note_label.setMinimumWidth(25)
-
-        top_studs_width_offset_label = QtGui.QLabel(u"Width Half Stud Offset")
-        top_studs_width_offset_label.setAlignment(QtCore.Qt.AlignRight)
-
-        top_studs_width_offset_checkbox = QtGui.QCheckBox()
-
-        top_studs_width_offset_note_label = QtGui.QLabel(u"ℹ")
-        top_studs_width_offset_note_label.setToolTip("forced to False if dimensions.width == 1")
-        top_studs_width_offset_note_label.setFont(self.note_font)
-        top_studs_width_offset_note_label.setMinimumWidth(25)
-
-        top_studs_depth_offset_label = QtGui.QLabel(u"Depth Half Stud Offset")
-        top_studs_depth_offset_label.setAlignment(QtCore.Qt.AlignRight)
-
-        top_studs_depth_offset_checkbox = QtGui.QCheckBox()
-
-        top_studs_depth_offset_note_label = QtGui.QLabel(u"ℹ")
-        top_studs_depth_offset_note_label.setToolTip("forced to False if dimensions.depth == 1")
-        top_studs_depth_offset_note_label.setFont(self.note_font)
-        top_studs_depth_offset_note_label.setMinimumWidth(25)
 
         top_studs_style_group = QtGui.QWidget()
         top_studs_style_group_layout = QtGui.QHBoxLayout(top_studs_style_group)
@@ -559,18 +517,10 @@ class Dialog:
         top_studs_width_group_layout.addWidget(top_studs_width_count_label)
         top_studs_width_group_layout.addWidget(top_studs_width_count_spinbox)
         top_studs_width_group_layout.addWidget(top_studs_width_count_note_label)
-        top_studs_width_group_layout.addSpacing(50)
-        top_studs_width_group_layout.addWidget(top_studs_width_offset_label)
-        top_studs_width_group_layout.addWidget(top_studs_width_offset_checkbox)
-        top_studs_width_group_layout.addSpacing(6)
-        top_studs_width_group_layout.addWidget(top_studs_width_offset_note_label)
         top_studs_width_group_layout.addStretch(1)
         top_studs_width_group_layout.setAlignment(top_studs_width_count_label, QtCore.Qt.AlignVCenter)
         top_studs_width_group_layout.setAlignment(top_studs_width_count_spinbox, QtCore.Qt.AlignVCenter)
         top_studs_width_group_layout.setAlignment(top_studs_width_count_note_label, QtCore.Qt.AlignVCenter)
-        top_studs_width_group_layout.setAlignment(top_studs_width_offset_label, QtCore.Qt.AlignVCenter)
-        top_studs_width_group_layout.setAlignment(top_studs_width_offset_checkbox, QtCore.Qt.AlignVCenter)
-        top_studs_width_group_layout.setAlignment(top_studs_width_offset_note_label, QtCore.Qt.AlignVCenter)
 
         top_studs_depth_group = QtGui.QWidget()
         top_studs_depth_group_layout = QtGui.QHBoxLayout(top_studs_depth_group)
@@ -579,17 +529,10 @@ class Dialog:
         top_studs_depth_group_layout.addWidget(top_studs_depth_count_spinbox)
         top_studs_depth_group_layout.addWidget(top_studs_depth_count_note_label)
         top_studs_depth_group_layout.addSpacing(50)
-        top_studs_depth_group_layout.addWidget(top_studs_depth_offset_label)
-        top_studs_depth_group_layout.addWidget(top_studs_depth_offset_checkbox)
-        top_studs_depth_group_layout.addSpacing(6)
-        top_studs_depth_group_layout.addWidget(top_studs_depth_offset_note_label)
         top_studs_depth_group_layout.addStretch(1)
         top_studs_depth_group_layout.setAlignment(top_studs_depth_count_label, QtCore.Qt.AlignVCenter)
         top_studs_depth_group_layout.setAlignment(top_studs_depth_count_spinbox, QtCore.Qt.AlignVCenter)
         top_studs_depth_group_layout.setAlignment(top_studs_depth_count_note_label, QtCore.Qt.AlignVCenter)
-        top_studs_depth_group_layout.setAlignment(top_studs_depth_offset_label, QtCore.Qt.AlignVCenter)
-        top_studs_depth_group_layout.setAlignment(top_studs_depth_offset_checkbox, QtCore.Qt.AlignVCenter)
-        top_studs_depth_group_layout.setAlignment(top_studs_depth_offset_note_label, QtCore.Qt.AlignVCenter)
 
         top_studs_group = QtGui.QGroupBox("Top Studs")
         top_studs_group.setFont(self.heading_font)
@@ -603,8 +546,6 @@ class Dialog:
         self.top_studs_style_combobox = top_studs_style_combobox
         self.top_studs_width_count_spinbox = top_studs_width_count_spinbox
         self.top_studs_depth_count_spinbox = top_studs_depth_count_spinbox
-        self.top_studs_width_offset_checkbox = top_studs_width_offset_checkbox
-        self.top_studs_depth_offset_checkbox = top_studs_depth_offset_checkbox
 
         return top_studs_group
 
@@ -902,9 +843,7 @@ class Dialog:
         top_studs = dict([
             ("style", self.top_studs_style_combobox.itemData(self.top_studs_style_combobox.currentIndex())),
             ("width_count", self.top_studs_width_count_spinbox.value()),
-            ("depth_count", self.top_studs_depth_count_spinbox.value()),
-            ("width_offset", self.top_studs_width_offset_checkbox.isChecked()),
-            ("depth_offset", self.top_studs_depth_offset_checkbox.isChecked())
+            ("depth_count", self.top_studs_depth_count_spinbox.value())
         ])
 
         side_studs = dict([

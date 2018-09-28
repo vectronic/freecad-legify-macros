@@ -19,7 +19,7 @@ class BodyRenderer(object):
         self.holes_offset = holes_offset
 
         self.doc = FreeCAD.activeDocument()
-        self.body = self.doc.body
+        self.brick = self.doc.brick
 
     @staticmethod
     def _add_horizontal_sketch_segment(geometries, constraints, length, hor_vec_start, hor_vec_end, reverse):
@@ -135,14 +135,12 @@ class BodyRenderer(object):
 
         # Position of rib on brick from origin point (arc first point)
         # Half stud offsets from origin (-1, 1 chooses the origin point)
-        constraints.append(Sketcher.Constraint("DistanceX", segment_count, 1, -1, 1, -1 * rib_x_offset))
-        constraints.append(Sketcher.Constraint("DistanceY", segment_count, 1, -1, 1, -1 *
-                                               (bottom_offset + fillet_radius)))
+        constraints.append(Sketcher.Constraint("DistanceX", -1, 1, segment_count, 1, rib_x_offset))
+        constraints.append(Sketcher.Constraint("DistanceY", -1, 1, segment_count, 1, (bottom_offset + fillet_radius)))
 
         # Arc centre
         # Half stud offsets from origin (-1, 1 chooses the origin point)
-        constraints.append(Sketcher.Constraint("DistanceY", segment_count, 3, -1, 1, -1 *
-                                               (bottom_offset + fillet_radius)))
+        constraints.append(Sketcher.Constraint("DistanceY", -1, 1, segment_count, 3, (bottom_offset + fillet_radius)))
 
         # Arc second point
         constraints.append(Sketcher.Constraint("DistanceX", segment_count, 1, segment_count, 2, rib_thickness))
@@ -172,14 +170,14 @@ class BodyRenderer(object):
         geometries.append(Part.Circle())
         constraints.append(Sketcher.Constraint("Radius", 0, DIMS_TUBE_OUTER_RADIUS))
         # -1, 1 chooses the origin point
-        constraints.append(Sketcher.Constraint("DistanceX", 0, 3, -1, 1, -0.5 * DIMS_STUD_WIDTH_INNER))
+        constraints.append(Sketcher.Constraint("DistanceX", -1, 1, 0, 3, 0.5 * DIMS_STUD_WIDTH_INNER))
         # -1, 1 chooses the origin point
-        constraints.append(Sketcher.Constraint("DistanceY", 0, 3, -1, 1, -0.5 * DIMS_STUD_WIDTH_INNER))
+        constraints.append(Sketcher.Constraint("DistanceY", -1, 1, 0, 3, 0.5 * DIMS_STUD_WIDTH_INNER))
 
     def _render_body_pad_and_fillets(self):
         Console.PrintMessage("_render_body_pad_and_edge_fillets()\n")
 
-        body_pad_sketch = self.body.newObject("Sketcher::SketchObject", "body_pad_sketch")
+        body_pad_sketch = self.brick.newObject("Sketcher::SketchObject", "body_pad_sketch")
 
         body_pad_sketch.addGeometry([
 
@@ -215,7 +213,7 @@ class BodyRenderer(object):
         ])
 
         # perform the pad
-        body_pad = self.body.newObject("PartDesign::Pad", "body_pad")
+        body_pad = self.brick.newObject("PartDesign::Pad", "body_pad")
         body_pad.Profile = body_pad_sketch
 
         # Need to specify Dimension instead of UpToFace because of the following issue:
@@ -233,8 +231,8 @@ class BodyRenderer(object):
         for i in range(0, len(body_pad.Shape.Edges)):
             edge_names.append("Edge" + repr(i + 1))
 
-        body_edge_fillets = self.body.newObject("PartDesign::Fillet", "body_edge_fillets")
-        body_edge_fillets.Radius = 0.1
+        body_edge_fillets = self.brick.newObject("PartDesign::Fillet", "body_edge_fillets")
+        body_edge_fillets.Radius = DIMS_EDGE_FILLET
         body_edge_fillets.Base = (body_pad, edge_names)
 
         self.doc.recompute()
@@ -244,7 +242,7 @@ class BodyRenderer(object):
     def _render_body_pocket(self):
         Console.PrintMessage("_render_body_pocket()\n")
 
-        body_pocket_sketch = self.body.newObject("Sketcher::SketchObject", "body_pocket_sketch")
+        body_pocket_sketch = self.brick.newObject("Sketcher::SketchObject", "body_pocket_sketch")
 
         # TODO: support 2x1 tile or dual technic hole brick with center stud rib variation
         ribs = self.brick_height == 3 and self.brick_depth > 1 and self.brick_width > 1
@@ -398,7 +396,7 @@ class BodyRenderer(object):
         body_pocket_sketch.addConstraint(constraints)
 
         # perform the pocket
-        body_pocket = self.body.newObject("PartDesign::Pocket", "body_pocket")
+        body_pocket = self.brick.newObject("PartDesign::Pocket", "body_pocket")
         body_pocket.Profile = body_pocket_sketch
         body_pocket.Type = 3
         body_pocket.UpToFace = (self.doc.top_inside_datum_plane, [""])
@@ -411,7 +409,7 @@ class BodyRenderer(object):
         Console.PrintMessage("_render_tube_ribs()\n")
 
         if self.brick_width > 2:
-            front_tube_ribs_sketch = self.body.newObject("Sketcher::SketchObject", "front_tube_ribs_sketch")
+            front_tube_ribs_sketch = self.brick.newObject("Sketcher::SketchObject", "front_tube_ribs_sketch")
             front_tube_ribs_sketch.Support = (self.doc.front_inside_datum_plane, '')
             front_tube_ribs_sketch.MapMode = 'FlatFace'
 
@@ -443,7 +441,7 @@ class BodyRenderer(object):
             self.doc.recompute()
 
             # perform the pad
-            front_tube_ribs_pad = self.body.newObject("PartDesign::Pad", "front_tube_ribs_pad")
+            front_tube_ribs_pad = self.brick.newObject("PartDesign::Pad", "front_tube_ribs_pad")
             front_tube_ribs_pad.Profile = front_tube_ribs_sketch
             front_tube_ribs_pad.Reversed = 1
             # Need to specify Dimension instead of UpToFace because of the following issue:
@@ -455,7 +453,7 @@ class BodyRenderer(object):
             front_tube_ribs_sketch.ViewObject.Visibility = False
 
         if self.brick_depth > 2:
-            side_tube_ribs_sketch = self.body.newObject("Sketcher::SketchObject", "side_tube_ribs_sketch")
+            side_tube_ribs_sketch = self.brick.newObject("Sketcher::SketchObject", "side_tube_ribs_sketch")
             side_tube_ribs_sketch.Support = (self.doc.side_inside_datum_plane, '')
             side_tube_ribs_sketch.MapMode = 'FlatFace'
 
@@ -487,7 +485,7 @@ class BodyRenderer(object):
             self.doc.recompute()
 
             # perform the pad
-            side_tube_ribs_pad = self.body.newObject("PartDesign::Pad", "side_tube_ribs_pad")
+            side_tube_ribs_pad = self.brick.newObject("PartDesign::Pad", "side_tube_ribs_pad")
             side_tube_ribs_pad.Profile = side_tube_ribs_sketch
             # Need to specify Dimension instead of UpToFace because of the following issue:
             # https://freecadweb.org/tracker/view.php?id=3177
@@ -504,7 +502,7 @@ class BodyRenderer(object):
 
         # tubes pad
 
-        tubes_pad_sketch = self.body.newObject("Sketcher::SketchObject", "tubes_pad_sketch")
+        tubes_pad_sketch = self.brick.newObject("Sketcher::SketchObject", "tubes_pad_sketch")
         tubes_pad_sketch.Support = (self.doc.top_inside_datum_plane, '')
         tubes_pad_sketch.MapMode = 'FlatFace'
 
@@ -532,7 +530,7 @@ class BodyRenderer(object):
                                                      self.brick_depth - 1, self.brick_width - 1, True)
 
         # perform the pad
-        tubes_pad = self.body.newObject("PartDesign::Pad", "tubes_pad")
+        tubes_pad = self.brick.newObject("PartDesign::Pad", "tubes_pad")
         tubes_pad.Profile = tubes_pad_sketch
         tubes_pad.Reversed = 1
 
@@ -550,7 +548,7 @@ class BodyRenderer(object):
 
         # tubes pocket
 
-        tubes_pocket_sketch = self.body.newObject("Sketcher::SketchObject", "tubes_pocket_sketch")
+        tubes_pocket_sketch = self.brick.newObject("Sketcher::SketchObject", "tubes_pocket_sketch")
         tubes_pocket_sketch.Support = (self.doc.top_inside_datum_plane, '')
         tubes_pocket_sketch.MapMode = 'FlatFace'
 
@@ -660,7 +658,7 @@ class BodyRenderer(object):
                                                         self.brick_depth - 1, self.brick_width - 1, True)
 
         # perform the pocket
-        tubes_pocket = self.body.newObject("PartDesign::Pocket", "tubes_pocket")
+        tubes_pocket = self.brick.newObject("PartDesign::Pocket", "tubes_pocket")
         tubes_pocket.Profile = tubes_pocket_sketch
 
         # Need to specify Dimension instead of UpToFace because of the following issue:
@@ -678,7 +676,7 @@ class BodyRenderer(object):
     def _render_stick_ribs(self):
         Console.PrintMessage("_render_stick_ribs()\n")
 
-        stick_ribs_sketch = self.body.newObject("Sketcher::SketchObject", "stick_ribs_sketch")
+        stick_ribs_sketch = self.brick.newObject("Sketcher::SketchObject", "stick_ribs_sketch")
         if self.brick_width > 2:
             stick_ribs_sketch.Support = (self.doc.front_inside_datum_plane, '')
         else:
@@ -725,7 +723,7 @@ class BodyRenderer(object):
         self.doc.recompute()
 
         # perform the pad
-        stick_ribs_pad = self.body.newObject("PartDesign::Pad", "stick_ribs_pad")
+        stick_ribs_pad = self.brick.newObject("PartDesign::Pad", "stick_ribs_pad")
         stick_ribs_pad.Profile = stick_ribs_sketch
         if self.brick_width > 2:
             stick_ribs_pad.Reversed = 1
@@ -741,7 +739,7 @@ class BodyRenderer(object):
     def _render_sticks(self, hollow_sticks):
         Console.PrintMessage("_render_sticks({0})\n".format(hollow_sticks))
 
-        sticks_pad_sketch = self.body.newObject("Sketcher::SketchObject", "sticks_pad_sketch")
+        sticks_pad_sketch = self.brick.newObject("Sketcher::SketchObject", "sticks_pad_sketch")
         sticks_pad_sketch.Support = (self.doc.top_inside_datum_plane, '')
         sticks_pad_sketch.MapMode = 'FlatFace'
 
@@ -752,11 +750,11 @@ class BodyRenderer(object):
         constraints.append(Sketcher.Constraint("Radius", 0, DIMS_STICK_OUTER_RADIUS))
         # Half stud offsets from origin (-1, 1 chooses the origin point)
         if self.brick_width > 1:
-            constraints.append(Sketcher.Constraint("DistanceX", 0, 3, -1, 1, -0.5 * DIMS_STUD_WIDTH_INNER))
-            constraints.append(Sketcher.Constraint("DistanceY", 0, 3, -1, 1, 0))
+            constraints.append(Sketcher.Constraint("DistanceX", -1, 1, 0, 3, 0.5 * DIMS_STUD_WIDTH_INNER))
+            constraints.append(Sketcher.Constraint("DistanceY", -1, 1, 0, 3, 0))
         else:
-            constraints.append(Sketcher.Constraint("DistanceX", 0, 3, -1, 1, 0))
-            constraints.append(Sketcher.Constraint("DistanceY", 0, 3, -1, 1, -0.5 * DIMS_STUD_WIDTH_INNER))
+            constraints.append(Sketcher.Constraint("DistanceX", -1, 1, 0, 3, 0))
+            constraints.append(Sketcher.Constraint("DistanceY", -1, 1, 0, 3, 0.5 * DIMS_STUD_WIDTH_INNER))
 
         sticks_pad_sketch.addGeometry(geometries, False)
         sticks_pad_sketch.addConstraint(constraints)
@@ -770,7 +768,7 @@ class BodyRenderer(object):
                                                   self.brick_depth - 1, 1, True)
 
         # perform the pad
-        sticks_pad = self.body.newObject("PartDesign::Pad", "sticks_pad")
+        sticks_pad = self.brick.newObject("PartDesign::Pad", "sticks_pad")
         sticks_pad.Profile = sticks_pad_sketch
         sticks_pad.Reversed = 1
         # Need to specify Dimension instead of UpToFace because of the following issue:
@@ -785,7 +783,7 @@ class BodyRenderer(object):
         sticks_pad_sketch.ViewObject.Visibility = False
 
         if hollow_sticks:
-            sticks_pocket_sketch = self.body.newObject("Sketcher::SketchObject", "sticks_pocket_sketch")
+            sticks_pocket_sketch = self.brick.newObject("Sketcher::SketchObject", "sticks_pocket_sketch")
             sticks_pocket_sketch.Support = (self.doc.top_inside_datum_plane, '')
             sticks_pocket_sketch.MapMode = 'FlatFace'
 
@@ -796,11 +794,11 @@ class BodyRenderer(object):
             constraints.append(Sketcher.Constraint("Radius", 0, DIMS_STICK_INNER_RADIUS))
             # Half stud offsets from origin (-1, 1 chooses the origin point)
             if self.brick_width > 1:
-                constraints.append(Sketcher.Constraint("DistanceX", 0, 3, -1, 1, -0.5 * DIMS_STUD_WIDTH_INNER))
-                constraints.append(Sketcher.Constraint("DistanceY", 0, 3, -1, 1, 0))
+                constraints.append(Sketcher.Constraint("DistanceX", -1, 1, 0, 3, 0.5 * DIMS_STUD_WIDTH_INNER))
+                constraints.append(Sketcher.Constraint("DistanceY", -1, 1, 0, 3, 0))
             else:
-                constraints.append(Sketcher.Constraint("DistanceX", 0, 3, -1, 1, 0))
-                constraints.append(Sketcher.Constraint("DistanceY", 0, 3, -1, 1, -0.5 * DIMS_STUD_WIDTH_INNER))
+                constraints.append(Sketcher.Constraint("DistanceX", -1, 1, 0, 3, 0))
+                constraints.append(Sketcher.Constraint("DistanceY", -1, 1, 0, 3, 0.5 * DIMS_STUD_WIDTH_INNER))
 
             sticks_pocket_sketch.addGeometry(geometries, False)
             sticks_pocket_sketch.addConstraint(constraints)
@@ -814,7 +812,7 @@ class BodyRenderer(object):
                                                          self.brick_depth - 1, 1, True)
 
             # perform the pocket
-            sticks_pocket = self.body.newObject("PartDesign::Pocket", "sticks_pocket")
+            sticks_pocket = self.brick.newObject("PartDesign::Pocket", "sticks_pocket")
             sticks_pocket.Profile = sticks_pocket_sketch
             # Need to specify Dimension instead of UpToFace because of the following issue:
             # https://freecadweb.org/tracker/view.php?id=3177
