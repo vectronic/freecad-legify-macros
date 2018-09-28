@@ -95,7 +95,8 @@ class TopStudsRenderer(object):
     def _render_studs_inside(self, initial_width_offset, initial_depth_offset):
         Console.PrintMessage("render_studs_inside({0},{1})\n".format(initial_width_offset, initial_depth_offset))
 
-        top_studs_inside_pocket_sketch = self.brick.newObject("Sketcher::SketchObject", "top_studs_inside_pocket_sketch")
+        top_studs_inside_pocket_sketch = self.brick\
+            .newObject("Sketcher::SketchObject", "top_studs_inside_pocket_sketch")
         top_studs_inside_pocket_sketch.Support = (self.doc.top_inside_datum_plane, '')
         top_studs_inside_pocket_sketch.MapMode = 'FlatFace'
 
