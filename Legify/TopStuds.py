@@ -21,8 +21,8 @@ class TopStudsRenderer(object):
         self.depth_count = top_studs_depth_count
 
     @staticmethod
-    def _add_stud_outer_pad_sketch(geometries, constraints, width_offset, depth_offset):
-        Console.PrintMessage("_add_stud_outer_pad_sketch({0},{1})\n".format(width_offset, depth_offset))
+    def _add_stud_outer_pad_sketch(geometries, constraints, width_offset, depth_offset, style):
+        Console.PrintMessage("_add_stud_outer_pad_sketch({0},{1},{2})\n".format(width_offset, depth_offset, style))
 
         segment_count = len(geometries)
 
@@ -32,6 +32,15 @@ class TopStudsRenderer(object):
         constraints.append(Sketcher.Constraint("DistanceX", -1, 1, segment_count, 3, width_offset))
         # -1, 1 chooses the origin point
         constraints.append(Sketcher.Constraint("DistanceY", -1, 1, segment_count, 3, depth_offset))
+
+        if style == TopStudStyle.OPEN:
+            # add a smaller inner circle if open studs
+            geometries.append(Part.Circle())
+            constraints.append(Sketcher.Constraint("Radius", segment_count + 1, DIMS_STUD_INNER_RADIUS))
+            # -1, 1 chooses the origin point
+            constraints.append(Sketcher.Constraint("DistanceX", -1, 1, segment_count + 1, 3, width_offset))
+            # -1, 1 chooses the origin point
+            constraints.append(Sketcher.Constraint("DistanceY", -1, 1, segment_count + 1, 3, depth_offset))
 
     @staticmethod
     def _add_stud_inside_pocket_sketch(geometries, constraints, width_offset, depth_offset):
@@ -46,8 +55,9 @@ class TopStudsRenderer(object):
         # -1, 1 chooses the origin point
         constraints.append(Sketcher.Constraint("DistanceY", -1, 1, segment_count, 3, depth_offset))
 
-    def _render_studs_outside(self, initial_width_offset, initial_depth_offset):
-        Console.PrintMessage("render_studs_outside({0},{1})\n".format(initial_width_offset, initial_depth_offset))
+    def _render_studs_outside(self, initial_width_offset, initial_depth_offset, style):
+        Console.PrintMessage("render_studs_outside({0},{1},{2})\n".format(initial_width_offset, initial_depth_offset,
+                                                                          style))
 
         top_studs_outside_pad_sketch = self.brick.newObject("Sketcher::SketchObject", "top_studs_outside_pad_sketch")
         top_studs_outside_pad_sketch.Support = (self.doc.top_datum_plane, '')
@@ -62,7 +72,8 @@ class TopStudsRenderer(object):
             for j in range(0, self.depth_count):
                 self._add_stud_outer_pad_sketch(geometries, constraints,
                                                 initial_width_offset + i * DIMS_STUD_WIDTH_INNER,
-                                                initial_depth_offset + j * DIMS_STUD_WIDTH_INNER)
+                                                initial_depth_offset + j * DIMS_STUD_WIDTH_INNER,
+                                                style)
 
         top_studs_outside_pad_sketch.addGeometry(geometries, False)
         top_studs_outside_pad_sketch.addConstraint(constraints)
@@ -86,6 +97,7 @@ class TopStudsRenderer(object):
                     edge_names.append("Edge" + repr(i + 1))
 
         # fillet the studs
+        # TODO: check if inner edge of open stud should be filleted (currently it is)
         body_edge_fillets = self.brick.newObject("PartDesign::Fillet", "top_stud_fillets")
         body_edge_fillets.Radius = DIMS_EDGE_FILLET
         body_edge_fillets.Base = (top_studs_outside_pad, edge_names)
@@ -112,7 +124,7 @@ class TopStudsRenderer(object):
         top_studs_inside_pocket_sketch.addGeometry(geometries, False)
         top_studs_inside_pocket_sketch.addConstraint(constraints)
 
-        # perform the pad
+        # perform the pocket
         top_studs_inside_pocket = self.brick.newObject("PartDesign::Pocket", "top_studs_inside_pocket")
         top_studs_inside_pocket.Profile = top_studs_inside_pocket_sketch
         top_studs_inside_pocket.Reversed = True
@@ -125,14 +137,14 @@ class TopStudsRenderer(object):
 
         self.doc.recompute()
 
-    # TODO: render inner and outer for open style stud
-    # TODO: check if inner pocket when offset over tube
     def render(self):
         Console.PrintMessage("render\n")
 
         initial_width_offset = (self.width - self.width_count) * DIMS_STUD_WIDTH_INNER / 2
         initial_depth_offset = (self.depth - self.depth_count) * DIMS_STUD_WIDTH_INNER / 2
 
-        self._render_studs_outside(initial_width_offset, initial_depth_offset)
+        self._render_studs_outside(initial_width_offset, initial_depth_offset, self.style)
 
-        self._render_studs_inside(initial_width_offset, initial_depth_offset)
+        # Only render inner pocket if closed studs AND studs are not offset
+        if self.style == TopStudStyle.CLOSED and initial_width_offset == 0 and initial_depth_offset == 0:
+            self._render_studs_inside(initial_width_offset, initial_depth_offset)

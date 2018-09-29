@@ -237,14 +237,14 @@ class BodyRenderer(object):
 
         self.doc.recompute()
 
-        # TODO: support bottom outside pocket (for tiles only), fillet required?
+        # TODO: support modern tile with bottom outside pocket (is fillet also required?)
 
     def _render_body_pocket(self):
         Console.PrintMessage("_render_body_pocket()\n")
 
         body_pocket_sketch = self.brick.newObject("Sketcher::SketchObject", "body_pocket_sketch")
 
-        # TODO: support 2x1 tile or dual technic hole brick with center stud rib variation
+        # TODO: support modern 2x1 tile and dual technic hole brick with rib variation and no tube/stick
         ribs = self.brick_height == 3 and self.brick_depth > 1 and self.brick_width > 1
 
         geometries = []
