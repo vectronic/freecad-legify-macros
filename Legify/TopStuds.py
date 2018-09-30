@@ -28,19 +28,19 @@ class TopStudsRenderer(object):
 
         geometries.append(Part.Circle())
         constraints.append(Sketcher.Constraint("Radius", segment_count, DIMS_STUD_OUTER_RADIUS))
-        # -1, 1 chooses the origin point
-        constraints.append(Sketcher.Constraint("DistanceX", -1, 1, segment_count, 3, width_offset))
-        # -1, 1 chooses the origin point
-        constraints.append(Sketcher.Constraint("DistanceY", -1, 1, segment_count, 3, depth_offset))
+        constraints.append(Sketcher.Constraint("DistanceX", GEOMETRY_ORIGIN_INDEX, VERTEX_START_INDEX, segment_count,
+                                               VERTEX_CENTRE_INDEX, width_offset))
+        constraints.append(Sketcher.Constraint("DistanceY", GEOMETRY_ORIGIN_INDEX, VERTEX_START_INDEX, segment_count,
+                                               VERTEX_CENTRE_INDEX, depth_offset))
 
         if style == TopStudStyle.OPEN:
             # add a smaller inner circle if open studs
             geometries.append(Part.Circle())
             constraints.append(Sketcher.Constraint("Radius", segment_count + 1, DIMS_STUD_INNER_RADIUS))
-            # -1, 1 chooses the origin point
-            constraints.append(Sketcher.Constraint("DistanceX", -1, 1, segment_count + 1, 3, width_offset))
-            # -1, 1 chooses the origin point
-            constraints.append(Sketcher.Constraint("DistanceY", -1, 1, segment_count + 1, 3, depth_offset))
+            constraints.append(Sketcher.Constraint("DistanceX", GEOMETRY_ORIGIN_INDEX, VERTEX_START_INDEX,
+                                                   segment_count + 1, VERTEX_CENTRE_INDEX, width_offset))
+            constraints.append(Sketcher.Constraint("DistanceY", GEOMETRY_ORIGIN_INDEX, VERTEX_START_INDEX,
+                                                   segment_count + 1, VERTEX_CENTRE_INDEX, depth_offset))
 
     @staticmethod
     def _add_stud_inside_pocket_sketch(geometries, constraints, width_offset, depth_offset):
@@ -50,10 +50,10 @@ class TopStudsRenderer(object):
 
         geometries.append(Part.Circle())
         constraints.append(Sketcher.Constraint("Radius", segment_count, DIMS_STUD_INSIDE_HOLE_RADIUS))
-        # -1, 1 chooses the origin point
-        constraints.append(Sketcher.Constraint("DistanceX", -1, 1, segment_count, 3, width_offset))
-        # -1, 1 chooses the origin point
-        constraints.append(Sketcher.Constraint("DistanceY", -1, 1, segment_count, 3, depth_offset))
+        constraints.append(Sketcher.Constraint("DistanceX", GEOMETRY_ORIGIN_INDEX, VERTEX_START_INDEX, segment_count,
+                                               VERTEX_CENTRE_INDEX, width_offset))
+        constraints.append(Sketcher.Constraint("DistanceY", GEOMETRY_ORIGIN_INDEX, VERTEX_START_INDEX, segment_count,
+                                               VERTEX_CENTRE_INDEX, depth_offset))
 
     def _render_studs_outside(self, initial_width_offset, initial_depth_offset, style):
         Console.PrintMessage("render_studs_outside({0},{1},{2})\n".format(initial_width_offset, initial_depth_offset,

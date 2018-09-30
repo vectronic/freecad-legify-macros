@@ -45,6 +45,14 @@ DIMS_STUD_HEIGHT = 1.8
 DIMS_STUD_INSIDE_HOLE_RADIUS = 1.3
 DIMS_STUD_INSIDE_HOLE_TOP_OFFSET = 0.1
 
+VERTEX_START_INDEX = 1
+VERTEX_END_INDEX = 2
+VERTEX_CENTRE_INDEX = 3
+
+GEOMETRY_ORIGIN_INDEX = -1
+# External geometry is indexed from -3 descending! https://forum.freecadweb.org/viewtopic.php?t=24211
+GEOMETRY_FIRST_CONSTRUCTION_INDEX = -3
+
 
 def xy_plane_top_left_vector():
     return FreeCAD.Vector(-1, 1, 0)

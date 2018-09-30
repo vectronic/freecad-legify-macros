@@ -30,9 +30,10 @@ class BodyRenderer(object):
         geometries.append(Part.LineSegment(hor_vec_start, hor_vec_end))
         constraints.append(Sketcher.Constraint("Horizontal", segment_count))
         if segment_count > 0:
-            constraints.append(Sketcher.Constraint("Coincident", segment_count - 1, 2, segment_count, 1))
-        constraints.append(Sketcher.Constraint("DistanceX", segment_count, 1, segment_count, 2,
-                                               (-1 if reverse else 1) * length))
+            constraints.append(Sketcher.Constraint("Coincident", segment_count - 1, VERTEX_END_INDEX, segment_count,
+                                                   VERTEX_START_INDEX))
+        constraints.append(Sketcher.Constraint("DistanceX", segment_count, VERTEX_START_INDEX, segment_count,
+                                               VERTEX_END_INDEX, (-1 if reverse else 1) * length))
 
     @staticmethod
     def _add_vertical_sketch_segment(geometries, constraints, length, ver_vec_start, ver_vec_end, reverse):
@@ -43,9 +44,10 @@ class BodyRenderer(object):
         geometries.append(Part.LineSegment(ver_vec_start, ver_vec_end))
         constraints.append(Sketcher.Constraint("Vertical", segment_count))
         if segment_count > 0:
-            constraints.append(Sketcher.Constraint("Coincident", segment_count - 1, 2, segment_count, 1))
-        constraints.append(Sketcher.Constraint("DistanceY", segment_count, 1, segment_count, 2,
-                                               (-1 if reverse else 1) * length))
+            constraints.append(Sketcher.Constraint("Coincident", segment_count - 1, VERTEX_END_INDEX, segment_count,
+                                                   VERTEX_START_INDEX))
+        constraints.append(Sketcher.Constraint("DistanceY", segment_count, VERTEX_START_INDEX, segment_count,
+                                               VERTEX_END_INDEX, (-1 if reverse else 1) * length))
 
     @staticmethod
     def _add_horizontal_sketch_segment_with_rib(geometries, constraints, length,
@@ -59,26 +61,31 @@ class BodyRenderer(object):
         geometries.append(Part.LineSegment(ver_vec_start, ver_vec_end))
         constraints.append(Sketcher.Constraint("Vertical", segment_count))
         if segment_count > 0:
-            constraints.append(Sketcher.Constraint("Coincident", segment_count - 1, 2, segment_count, 1))
-        constraints.append(Sketcher.Constraint("DistanceY", segment_count, 1, segment_count, 2,
-                                               (-1 if reverse else 1) * DIMS_SIDE_RIB_DEPTH))
+            constraints.append(Sketcher.Constraint("Coincident", segment_count - 1, VERTEX_END_INDEX, segment_count,
+                                                   VERTEX_START_INDEX))
+        constraints.append(Sketcher.Constraint("DistanceY", segment_count, VERTEX_START_INDEX, segment_count,
+                                               VERTEX_END_INDEX, (-1 if reverse else 1) * DIMS_SIDE_RIB_DEPTH))
 
         geometries.append(Part.LineSegment(hor_vec_start, hor_vec_end))
         constraints.append(Sketcher.Constraint("Horizontal", segment_count + 1))
-        constraints.append(Sketcher.Constraint("Coincident", segment_count, 2, segment_count + 1, 1))
-        constraints.append(Sketcher.Constraint("DistanceX", segment_count + 1, 1, segment_count + 1, 2,
-                                               (-1 if reverse else 1) * DIMS_SIDE_RIB_WIDTH))
+        constraints.append(Sketcher.Constraint("Coincident", segment_count, VERTEX_END_INDEX, segment_count + 1,
+                                               VERTEX_START_INDEX))
+        constraints.append(Sketcher.Constraint("DistanceX", segment_count + 1, VERTEX_START_INDEX, segment_count + 1,
+                                               VERTEX_END_INDEX, (-1 if reverse else 1) * DIMS_SIDE_RIB_WIDTH))
 
         geometries.append(Part.LineSegment(ver_vec_start, ver_vec_end))
         constraints.append(Sketcher.Constraint("Vertical", segment_count + 2))
-        constraints.append(Sketcher.Constraint("Coincident", segment_count + 1, 2, segment_count + 2, 1))
-        constraints.append(Sketcher.Constraint("DistanceY", segment_count + 2, 1, segment_count + 2, 2,
-                                               (1 if reverse else -1) * DIMS_SIDE_RIB_DEPTH))
+        constraints.append(Sketcher.Constraint("Coincident", segment_count + 1, VERTEX_END_INDEX, segment_count + 2,
+                                               VERTEX_START_INDEX))
+        constraints.append(Sketcher.Constraint("DistanceY", segment_count + 2, VERTEX_START_INDEX, segment_count + 2,
+                                               VERTEX_END_INDEX, (1 if reverse else -1) * DIMS_SIDE_RIB_DEPTH))
 
         geometries.append(Part.LineSegment(hor_vec_start, hor_vec_end))
         constraints.append(Sketcher.Constraint("Horizontal", segment_count + 3))
-        constraints.append(Sketcher.Constraint("Coincident", segment_count + 2, 2, segment_count + 3, 1))
-        constraints.append(Sketcher.Constraint("DistanceX", segment_count + 3, 1, segment_count + 3, 2,
+        constraints.append(Sketcher.Constraint("Coincident", segment_count + 2, VERTEX_END_INDEX, segment_count + 3,
+                                               VERTEX_START_INDEX))
+        constraints.append(Sketcher.Constraint("DistanceX", segment_count + 3, VERTEX_START_INDEX, segment_count + 3,
+                                               VERTEX_END_INDEX,
                                                (-1 if reverse else 1) * (length - DIMS_SIDE_RIB_WIDTH)))
 
     @staticmethod
@@ -93,26 +100,31 @@ class BodyRenderer(object):
         geometries.append(Part.LineSegment(hor_vec_start, hor_vec_end))
         constraints.append(Sketcher.Constraint("Horizontal", segment_count))
         if segment_count > 0:
-            constraints.append(Sketcher.Constraint("Coincident", segment_count - 1, 2, segment_count, 1))
-        constraints.append(Sketcher.Constraint("DistanceX", segment_count, 1, segment_count, 2,
-                                               (1 if reverse else -1) * DIMS_SIDE_RIB_DEPTH))
+            constraints.append(Sketcher.Constraint("Coincident", segment_count - 1, VERTEX_END_INDEX, segment_count,
+                                                   VERTEX_START_INDEX))
+        constraints.append(Sketcher.Constraint("DistanceX", segment_count, VERTEX_START_INDEX, segment_count,
+                                               VERTEX_END_INDEX, (1 if reverse else -1) * DIMS_SIDE_RIB_DEPTH))
 
         geometries.append(Part.LineSegment(ver_vec_start, ver_vec_end))
         constraints.append(Sketcher.Constraint("Vertical", segment_count + 1))
-        constraints.append(Sketcher.Constraint("Coincident", segment_count, 2, segment_count + 1, 1))
-        constraints.append(Sketcher.Constraint("DistanceY", segment_count + 1, 1, segment_count + 1, 2,
-                                               (-1 if reverse else 1) * DIMS_SIDE_RIB_WIDTH))
+        constraints.append(Sketcher.Constraint("Coincident", segment_count, VERTEX_END_INDEX, segment_count + 1,
+                                               VERTEX_START_INDEX))
+        constraints.append(Sketcher.Constraint("DistanceY", segment_count + 1, VERTEX_START_INDEX, segment_count + 1,
+                                               VERTEX_END_INDEX, (-1 if reverse else 1) * DIMS_SIDE_RIB_WIDTH))
 
         geometries.append(Part.LineSegment(hor_vec_start, hor_vec_end))
         constraints.append(Sketcher.Constraint("Horizontal", segment_count + 2))
-        constraints.append(Sketcher.Constraint("Coincident", segment_count + 1, 2, segment_count + 2, 1))
-        constraints.append(Sketcher.Constraint("DistanceX", segment_count + 2, 1, segment_count + 2, 2,
-                                               (-1 if reverse else 1) * DIMS_SIDE_RIB_DEPTH))
+        constraints.append(Sketcher.Constraint("Coincident", segment_count + 1, VERTEX_END_INDEX, segment_count + 2,
+                                               VERTEX_START_INDEX))
+        constraints.append(Sketcher.Constraint("DistanceX", segment_count + 2, VERTEX_START_INDEX, segment_count + 2,
+                                               VERTEX_END_INDEX, (-1 if reverse else 1) * DIMS_SIDE_RIB_DEPTH))
 
         geometries.append(Part.LineSegment(ver_vec_start, ver_vec_end))
         constraints.append(Sketcher.Constraint("Vertical", segment_count + 3))
-        constraints.append(Sketcher.Constraint("Coincident", segment_count + 2, 2, segment_count + 3, 1))
-        constraints.append(Sketcher.Constraint("DistanceY", segment_count + 3, 1, segment_count + 3, 2,
+        constraints.append(Sketcher.Constraint("Coincident", segment_count + 2, VERTEX_END_INDEX, segment_count + 3,
+                                               VERTEX_START_INDEX))
+        constraints.append(Sketcher.Constraint("DistanceY", segment_count + 3, VERTEX_START_INDEX, segment_count + 3,
+                                               VERTEX_END_INDEX,
                                                (-1 if reverse else 1) * (length - DIMS_SIDE_RIB_WIDTH)))
 
     @staticmethod
@@ -134,34 +146,41 @@ class BodyRenderer(object):
                         FreeCAD.Vector(0, 0, 1), fillet_radius), math.pi, 2 * math.pi))
 
         # Position of rib on brick from origin point (arc first point)
-        # Half stud offsets from origin (-1, 1 chooses the origin point)
-        constraints.append(Sketcher.Constraint("DistanceX", -1, 1, segment_count, 1, rib_x_offset))
-        constraints.append(Sketcher.Constraint("DistanceY", -1, 1, segment_count, 1, (bottom_offset + fillet_radius)))
+        constraints.append(Sketcher.Constraint("DistanceX", GEOMETRY_FIRST_CONSTRUCTION_INDEX, VERTEX_START_INDEX,
+                                               segment_count, VERTEX_START_INDEX, rib_x_offset))
+        constraints.append(Sketcher.Constraint("DistanceY", GEOMETRY_ORIGIN_INDEX, VERTEX_START_INDEX, segment_count,
+                                               VERTEX_START_INDEX, (bottom_offset + fillet_radius)))
 
         # Arc centre
-        # Half stud offsets from origin (-1, 1 chooses the origin point)
-        constraints.append(Sketcher.Constraint("DistanceY", -1, 1, segment_count, 3, (bottom_offset + fillet_radius)))
+        constraints.append(Sketcher.Constraint("DistanceY", GEOMETRY_ORIGIN_INDEX, VERTEX_START_INDEX, segment_count,
+                                               VERTEX_CENTRE_INDEX, (bottom_offset + fillet_radius)))
 
         # Arc second point
-        constraints.append(Sketcher.Constraint("DistanceX", segment_count, 1, segment_count, 2, rib_thickness))
-        constraints.append(Sketcher.Constraint("DistanceY", segment_count, 1, segment_count, 2, 0))
+        constraints.append(Sketcher.Constraint("DistanceX", segment_count, VERTEX_START_INDEX, segment_count,
+                                               VERTEX_END_INDEX, rib_thickness))
+        constraints.append(Sketcher.Constraint("DistanceY", segment_count, VERTEX_START_INDEX, segment_count,
+                                               VERTEX_END_INDEX, 0))
 
         geometries.append(Part.LineSegment(ver_vec_start, ver_vec_end))
         constraints.append(Sketcher.Constraint("Vertical", segment_count + 1))
-        constraints.append(Sketcher.Constraint("Coincident", segment_count, 2, segment_count + 1, 1))
+        constraints.append(Sketcher.Constraint("Coincident", segment_count, VERTEX_END_INDEX, segment_count + 1,
+                                               VERTEX_START_INDEX))
 
         # Render up until top_inside_datum_plane - already added as a line geometry element to the sketch
-        # This external geometry is indexed from -3 descending! https://forum.freecadweb.org/viewtopic.php?t=24211
-        constraints.append(Sketcher.Constraint("PointOnObject", segment_count + 1, 2, -3))
+        constraints.append(Sketcher.Constraint("PointOnObject", segment_count + 1, VERTEX_END_INDEX,
+                                               GEOMETRY_FIRST_CONSTRUCTION_INDEX))
 
         geometries.append(Part.LineSegment(hor_vec_end, hor_vec_start))
         constraints.append(Sketcher.Constraint("Horizontal", segment_count + 2))
-        constraints.append(Sketcher.Constraint("Coincident", segment_count + 1, 2, segment_count + 2, 1))
+        constraints.append(Sketcher.Constraint("Coincident", segment_count + 1, VERTEX_END_INDEX, segment_count + 2,
+                                               VERTEX_START_INDEX))
 
         geometries.append(Part.LineSegment(ver_vec_end, ver_vec_start))
         constraints.append(Sketcher.Constraint("Vertical", segment_count + 3))
-        constraints.append(Sketcher.Constraint("Coincident", segment_count + 2, 2, segment_count + 3, 1))
-        constraints.append(Sketcher.Constraint("Coincident", segment_count + 3, 2, segment_count, 1))
+        constraints.append(Sketcher.Constraint("Coincident", segment_count + 2, VERTEX_END_INDEX, segment_count + 3,
+                                               VERTEX_START_INDEX))
+        constraints.append(Sketcher.Constraint("Coincident", segment_count + 3, VERTEX_END_INDEX, segment_count,
+                                               VERTEX_START_INDEX))
 
     @staticmethod
     def _add_tube_circle_sketch(geometries, constraints):
@@ -169,10 +188,10 @@ class BodyRenderer(object):
 
         geometries.append(Part.Circle())
         constraints.append(Sketcher.Constraint("Radius", 0, DIMS_TUBE_OUTER_RADIUS))
-        # -1, 1 chooses the origin point
-        constraints.append(Sketcher.Constraint("DistanceX", -1, 1, 0, 3, 0.5 * DIMS_STUD_WIDTH_INNER))
-        # -1, 1 chooses the origin point
-        constraints.append(Sketcher.Constraint("DistanceY", -1, 1, 0, 3, 0.5 * DIMS_STUD_WIDTH_INNER))
+        constraints.append(Sketcher.Constraint("DistanceX", GEOMETRY_ORIGIN_INDEX, VERTEX_START_INDEX, 0,
+                                               VERTEX_CENTRE_INDEX, 0.5 * DIMS_STUD_WIDTH_INNER))
+        constraints.append(Sketcher.Constraint("DistanceY", GEOMETRY_ORIGIN_INDEX, VERTEX_START_INDEX, 0,
+                                               VERTEX_CENTRE_INDEX, 0.5 * DIMS_STUD_WIDTH_INNER))
 
     def _render_body_pad_and_fillets(self):
         Console.PrintMessage("_render_body_pad_and_edge_fillets()\n")
@@ -191,25 +210,27 @@ class BodyRenderer(object):
         body_pad_sketch.addConstraint([
 
             # Rectangle constraints
-            Sketcher.Constraint("Coincident", 0, 2, 1, 1),
-            Sketcher.Constraint("Coincident", 1, 2, 2, 1),
-            Sketcher.Constraint("Coincident", 2, 2, 3, 1),
-            Sketcher.Constraint("Coincident", 3, 2, 0, 1),
+            Sketcher.Constraint("Coincident", 0, VERTEX_END_INDEX, 1, VERTEX_START_INDEX),
+            Sketcher.Constraint("Coincident", 1, VERTEX_END_INDEX, 2, VERTEX_START_INDEX),
+            Sketcher.Constraint("Coincident", 2, VERTEX_END_INDEX, 3, VERTEX_START_INDEX),
+            Sketcher.Constraint("Coincident", 3, VERTEX_END_INDEX, 0, VERTEX_START_INDEX),
             Sketcher.Constraint("Horizontal", 0),
             Sketcher.Constraint("Horizontal", 2),
             Sketcher.Constraint("Vertical", 1),
             Sketcher.Constraint("Vertical", 3),
 
-            # Half stud offsets from origin (-1, 1 chooses the origin point)
-            Sketcher.Constraint("DistanceX", 0, 1, -1, 1, DIMS_HALF_STUD_WIDTH_OUTER),
-            Sketcher.Constraint("DistanceY", 0, 1, -1, 1, DIMS_HALF_STUD_WIDTH_OUTER),
+            # Half stud offsets from origin
+            Sketcher.Constraint("DistanceX", 0, VERTEX_START_INDEX, GEOMETRY_ORIGIN_INDEX, VERTEX_START_INDEX,
+                                DIMS_HALF_STUD_WIDTH_OUTER),
+            Sketcher.Constraint("DistanceY", 0, VERTEX_START_INDEX, GEOMETRY_ORIGIN_INDEX, VERTEX_START_INDEX,
+                                DIMS_HALF_STUD_WIDTH_OUTER),
 
             # Width
-            Sketcher.Constraint("DistanceX", 0, 1, 0, 2, (self.brick_width - 1) * DIMS_STUD_WIDTH_INNER
-                                + (2 * DIMS_HALF_STUD_WIDTH_OUTER)),
+            Sketcher.Constraint("DistanceX", 0, VERTEX_START_INDEX, 0, VERTEX_END_INDEX, (self.brick_width - 1) *
+                                DIMS_STUD_WIDTH_INNER + (2 * DIMS_HALF_STUD_WIDTH_OUTER)),
             # Depth
-            Sketcher.Constraint("DistanceY", 1, 1, 1, 2, (self.brick_depth - 1) * DIMS_STUD_WIDTH_INNER
-                                + (2 * DIMS_HALF_STUD_WIDTH_OUTER))
+            Sketcher.Constraint("DistanceY", 1, VERTEX_START_INDEX, 1, VERTEX_END_INDEX, (self.brick_depth - 1) *
+                                DIMS_STUD_WIDTH_INNER + (2 * DIMS_HALF_STUD_WIDTH_OUTER))
         ])
 
         # perform the pad
@@ -350,9 +371,9 @@ class BodyRenderer(object):
                                                        True)
 
             # Half stud offsets from origin (-1, 1 chooses the origin point)
-            constraints.append(Sketcher.Constraint("DistanceX", 0, 1, -1, 1,
+            constraints.append(Sketcher.Constraint("DistanceX", 0, VERTEX_START_INDEX, -1, VERTEX_START_INDEX,
                                                    DIMS_HALF_STUD_WIDTH_OUTER - DIMS_SIDE_THICKNESS))
-            constraints.append(Sketcher.Constraint("DistanceY", 0, 1, -1, 1,
+            constraints.append(Sketcher.Constraint("DistanceY", 0, VERTEX_START_INDEX, -1, VERTEX_START_INDEX,
                                                    DIMS_HALF_STUD_WIDTH_OUTER - DIMS_SIDE_THICKNESS))
         else:
 
@@ -362,34 +383,36 @@ class BodyRenderer(object):
 
             geometries.append(Part.LineSegment(xy_plane_top_right_vector(), xy_plane_bottom_right_vector()))
             constraints.append(Sketcher.Constraint("Vertical", 1))
-            constraints.append(Sketcher.Constraint("Coincident", 0, 2, 1, 1))
+            constraints.append(Sketcher.Constraint("Coincident", 0, VERTEX_END_INDEX, 1, VERTEX_START_INDEX))
 
             geometries.append(Part.LineSegment(xy_plane_bottom_right_vector(), xy_plane_bottom_left_vector()))
             constraints.append(Sketcher.Constraint("Horizontal", 2))
-            constraints.append(Sketcher.Constraint("Coincident", 1, 2, 2, 1))
+            constraints.append(Sketcher.Constraint("Coincident", 1, VERTEX_END_INDEX, 2, VERTEX_START_INDEX))
 
             geometries.append(Part.LineSegment(xy_plane_bottom_left_vector(), xy_plane_top_left_vector()))
             constraints.append(Sketcher.Constraint("Vertical", 3))
-            constraints.append(Sketcher.Constraint("Coincident", 2, 2, 3, 1))
+            constraints.append(Sketcher.Constraint("Coincident", 2, VERTEX_END_INDEX, 3, VERTEX_START_INDEX))
 
             # Complete the rectangle
-            constraints.append(Sketcher.Constraint("Coincident", 3, 2, 0, 1))
+            constraints.append(Sketcher.Constraint("Coincident", 3, VERTEX_END_INDEX, 0, VERTEX_START_INDEX))
 
             # Width
-            constraints.append(Sketcher.Constraint("DistanceX", 0, 1, 0, 2,
+            constraints.append(Sketcher.Constraint("DistanceX", 0, VERTEX_START_INDEX, 0, VERTEX_END_INDEX,
                                                    (self.brick_width - 1) * DIMS_STUD_WIDTH_INNER
                                                    + (2 * DIMS_HALF_STUD_WIDTH_OUTER)
                                                    - (2 * DIMS_SIDE_THICKNESS)))
             # Depth
-            constraints.append(Sketcher.Constraint("DistanceY", 1, 1, 1, 2,
+            constraints.append(Sketcher.Constraint("DistanceY", 1, VERTEX_START_INDEX, 1, VERTEX_END_INDEX,
                                                    (self.brick_depth - 1) * DIMS_STUD_WIDTH_INNER
                                                    + (2 * DIMS_HALF_STUD_WIDTH_OUTER)
                                                    - (2 * DIMS_SIDE_THICKNESS)))
 
-            # Half stud offsets from origin (-1, 1 chooses the origin point)
-            constraints.append(Sketcher.Constraint("DistanceX", 0, 1, -1, 1,
+            # Half stud offsets from origin
+            constraints.append(Sketcher.Constraint("DistanceX", 0, VERTEX_START_INDEX, GEOMETRY_ORIGIN_INDEX,
+                                                   VERTEX_START_INDEX,
                                                    DIMS_HALF_STUD_WIDTH_OUTER - DIMS_SIDE_THICKNESS))
-            constraints.append(Sketcher.Constraint("DistanceY", 0, 1, -1, 1,
+            constraints.append(Sketcher.Constraint("DistanceY", 0, VERTEX_START_INDEX, GEOMETRY_ORIGIN_INDEX,
+                                                   VERTEX_START_INDEX,
                                                    DIMS_HALF_STUD_WIDTH_OUTER - DIMS_SIDE_THICKNESS))
 
         body_pocket_sketch.addGeometry(geometries, False)
@@ -562,9 +585,8 @@ class BodyRenderer(object):
         geometries.append(Part.LineSegment(xy_plane_top_left_vector(), xy_plane_bottom_right_vector()))
         constraints.append(Sketcher.Constraint('Angle', 1, -45 * math.pi / 180))
         constraints.append(Sketcher.Constraint('Tangent', 1, 0))
-        constraints.append(Sketcher.Constraint('PointOnObject', 1, 2, 0))
-        # -1, 1 chooses the origin point
-        constraints.append(Sketcher.Constraint("DistanceX", 1, 1, 1, 2, 1))
+        constraints.append(Sketcher.Constraint('PointOnObject', 1, VERTEX_END_INDEX, 0))
+        constraints.append(Sketcher.Constraint("DistanceX", 1, VERTEX_START_INDEX, 1, VERTEX_END_INDEX, 1))
 
         # Four Line Segments
         x1 = (DIMS_STUD_WIDTH_INNER / 2) - 2
@@ -610,10 +632,10 @@ class BodyRenderer(object):
             Part.Circle(FreeCAD.Vector(4, 4, 0), FreeCAD.Vector(0, 0, 1), DIMS_TUBE_INNER_RADIUS), rad7, rad8))
 
         # All arcs centred
-        constraints.append(Sketcher.Constraint('Coincident', 6, 3, 0, 3))
-        constraints.append(Sketcher.Constraint('Coincident', 7, 3, 0, 3))
-        constraints.append(Sketcher.Constraint('Coincident', 8, 3, 0, 3))
-        constraints.append(Sketcher.Constraint('Coincident', 9, 3, 0, 3))
+        constraints.append(Sketcher.Constraint('Coincident', 6, VERTEX_CENTRE_INDEX, 0, VERTEX_CENTRE_INDEX))
+        constraints.append(Sketcher.Constraint('Coincident', 7, VERTEX_CENTRE_INDEX, 0, VERTEX_CENTRE_INDEX))
+        constraints.append(Sketcher.Constraint('Coincident', 8, VERTEX_CENTRE_INDEX, 0, VERTEX_CENTRE_INDEX))
+        constraints.append(Sketcher.Constraint('Coincident', 9, VERTEX_CENTRE_INDEX, 0, VERTEX_CENTRE_INDEX))
 
         # All equal radius arcs
         constraints.append(Sketcher.Constraint('Radius', 6, DIMS_TUBE_INNER_RADIUS))
@@ -622,17 +644,17 @@ class BodyRenderer(object):
         constraints.append(Sketcher.Constraint('Equal', 6, 9))
 
         # Link arcs to segments
-        constraints.append(Sketcher.Constraint('Coincident', 2, 2, 6, 2))
-        constraints.append(Sketcher.Constraint('Coincident', 6, 1, 3, 1))
-        constraints.append(Sketcher.Constraint('Coincident', 3, 2, 7, 2))
-        constraints.append(Sketcher.Constraint('Coincident', 7, 1, 4, 1))
-        constraints.append(Sketcher.Constraint('Coincident', 4, 2, 8, 2))
-        constraints.append(Sketcher.Constraint('Coincident', 8, 1, 5, 1))
-        constraints.append(Sketcher.Constraint('Coincident', 5, 2, 9, 2))
-        constraints.append(Sketcher.Constraint('Coincident', 9, 1, 2, 1))
+        constraints.append(Sketcher.Constraint('Coincident', 2, VERTEX_END_INDEX, 6, VERTEX_END_INDEX))
+        constraints.append(Sketcher.Constraint('Coincident', 6, VERTEX_START_INDEX, 3, VERTEX_START_INDEX))
+        constraints.append(Sketcher.Constraint('Coincident', 3, VERTEX_END_INDEX, 7, VERTEX_END_INDEX))
+        constraints.append(Sketcher.Constraint('Coincident', 7, VERTEX_START_INDEX, 4, VERTEX_START_INDEX))
+        constraints.append(Sketcher.Constraint('Coincident', 4, VERTEX_END_INDEX, 8, VERTEX_END_INDEX))
+        constraints.append(Sketcher.Constraint('Coincident', 8, VERTEX_START_INDEX, 5, VERTEX_START_INDEX))
+        constraints.append(Sketcher.Constraint('Coincident', 5, VERTEX_END_INDEX, 9, VERTEX_END_INDEX))
+        constraints.append(Sketcher.Constraint('Coincident', 9, VERTEX_START_INDEX, 2, VERTEX_START_INDEX))
 
         # The critical measurement: distance to tangent construction line
-        constraints.append(Sketcher.Constraint('Distance', 1, 2, 2, DIMS_TUBE_FLAT_THICKNESS))
+        constraints.append(Sketcher.Constraint('Distance', 1, VERTEX_END_INDEX, 2, DIMS_TUBE_FLAT_THICKNESS))
 
         tubes_pocket_sketch.addGeometry(geometries, False)
         tubes_pocket_sketch.addConstraint(constraints)
@@ -748,13 +770,17 @@ class BodyRenderer(object):
 
         geometries.append(Part.Circle())
         constraints.append(Sketcher.Constraint("Radius", 0, DIMS_STICK_OUTER_RADIUS))
-        # Half stud offsets from origin (-1, 1 chooses the origin point)
+        # Half stud offsets from origin
         if self.brick_width > 1:
-            constraints.append(Sketcher.Constraint("DistanceX", -1, 1, 0, 3, 0.5 * DIMS_STUD_WIDTH_INNER))
-            constraints.append(Sketcher.Constraint("DistanceY", -1, 1, 0, 3, 0))
+            constraints.append(Sketcher.Constraint("DistanceX", GEOMETRY_ORIGIN_INDEX, VERTEX_START_INDEX, 0,
+                                                   VERTEX_CENTRE_INDEX, 0.5 * DIMS_STUD_WIDTH_INNER))
+            constraints.append(Sketcher.Constraint("DistanceY", GEOMETRY_ORIGIN_INDEX, VERTEX_START_INDEX, 0,
+                                                   VERTEX_CENTRE_INDEX, 0))
         else:
-            constraints.append(Sketcher.Constraint("DistanceX", -1, 1, 0, 3, 0))
-            constraints.append(Sketcher.Constraint("DistanceY", -1, 1, 0, 3, 0.5 * DIMS_STUD_WIDTH_INNER))
+            constraints.append(Sketcher.Constraint("DistanceX", GEOMETRY_ORIGIN_INDEX, VERTEX_START_INDEX, 0,
+                                                   VERTEX_CENTRE_INDEX, 0))
+            constraints.append(Sketcher.Constraint("DistanceY", GEOMETRY_ORIGIN_INDEX, VERTEX_START_INDEX, 0,
+                                                   VERTEX_CENTRE_INDEX, 0.5 * DIMS_STUD_WIDTH_INNER))
 
         sticks_pad_sketch.addGeometry(geometries, False)
         sticks_pad_sketch.addConstraint(constraints)
@@ -792,13 +818,17 @@ class BodyRenderer(object):
 
             geometries.append(Part.Circle())
             constraints.append(Sketcher.Constraint("Radius", 0, DIMS_STICK_INNER_RADIUS))
-            # Half stud offsets from origin (-1, 1 chooses the origin point)
+            # Half stud offsets from origin
             if self.brick_width > 1:
-                constraints.append(Sketcher.Constraint("DistanceX", -1, 1, 0, 3, 0.5 * DIMS_STUD_WIDTH_INNER))
-                constraints.append(Sketcher.Constraint("DistanceY", -1, 1, 0, 3, 0))
+                constraints.append(Sketcher.Constraint("DistanceX", GEOMETRY_ORIGIN_INDEX, VERTEX_START_INDEX, 0,
+                                                       VERTEX_CENTRE_INDEX, 0.5 * DIMS_STUD_WIDTH_INNER))
+                constraints.append(Sketcher.Constraint("DistanceY", GEOMETRY_ORIGIN_INDEX, VERTEX_START_INDEX, 0,
+                                                       VERTEX_CENTRE_INDEX, 0))
             else:
-                constraints.append(Sketcher.Constraint("DistanceX", -1, 1, 0, 3, 0))
-                constraints.append(Sketcher.Constraint("DistanceY", -1, 1, 0, 3, 0.5 * DIMS_STUD_WIDTH_INNER))
+                constraints.append(Sketcher.Constraint("DistanceX", GEOMETRY_ORIGIN_INDEX, VERTEX_START_INDEX, 0,
+                                                       VERTEX_CENTRE_INDEX, 0))
+                constraints.append(Sketcher.Constraint("DistanceY", GEOMETRY_ORIGIN_INDEX, VERTEX_START_INDEX, 0,
+                                                       VERTEX_CENTRE_INDEX, 0.5 * DIMS_STUD_WIDTH_INNER))
 
             sticks_pocket_sketch.addGeometry(geometries, False)
             sticks_pocket_sketch.addConstraint(constraints)
