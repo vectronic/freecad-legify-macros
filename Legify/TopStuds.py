@@ -98,9 +98,9 @@ class TopStudsRenderer(object):
 
         # fillet the studs
         # TODO: check if inner edge of open stud should be filleted (currently it is)
-        body_edge_fillets = self.brick.newObject("PartDesign::Fillet", "top_stud_fillets")
-        body_edge_fillets.Radius = DIMS_EDGE_FILLET
-        body_edge_fillets.Base = (top_studs_outside_pad, edge_names)
+        top_stud_fillets = self.brick.newObject("PartDesign::Fillet", "top_stud_fillets")
+        top_stud_fillets.Radius = DIMS_EDGE_FILLET
+        top_stud_fillets.Base = (top_studs_outside_pad, edge_names)
 
         self.doc.recompute()
 
