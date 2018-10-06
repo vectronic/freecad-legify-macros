@@ -48,14 +48,13 @@ class BrickRenderer(object):
             FreeCAD.Rotation(0, 0, 0))
         front_datum_plane.ViewObject.Visibility = False
 
-        # TODO: 0.2mm too far
         # Create back datum plane
         back_datum_plane = self.brick.newObject("PartDesign::Plane", "back_datum_plane")
         back_datum_plane.MapReversed = False
         back_datum_plane.Support = [(self.doc.XZ_Plane, '')]
         back_datum_plane.MapMode = 'FlatFace'
         back_datum_plane.AttachmentOffset = FreeCAD.Placement(
-            FreeCAD.Vector(0, 0, -1 * ((DIMS_STUD_WIDTH_INNER / 2) + (DIMS_STUD_WIDTH_INNER * (brick_depth - 1)))),
+            FreeCAD.Vector(0, 0, -1 * (DIMS_HALF_STUD_WIDTH_OUTER + (DIMS_STUD_WIDTH_INNER * (brick_depth - 1)))),
             FreeCAD.Rotation(0, 0, 0))
         back_datum_plane.ViewObject.Visibility = False
 
@@ -69,14 +68,13 @@ class BrickRenderer(object):
             FreeCAD.Rotation(0, 0, 0))
         left_datum_plane.ViewObject.Visibility = False
 
-        # TODO: 0.2mm too far
         # Create right datum plane
         right_datum_plane = self.brick.newObject("PartDesign::Plane", "right_datum_plane")
         right_datum_plane.MapReversed = False
         right_datum_plane.Support = [(self.doc.YZ_Plane, '')]
         right_datum_plane.MapMode = 'FlatFace'
         right_datum_plane.AttachmentOffset = FreeCAD.Placement(
-            FreeCAD.Vector(0, 0, (DIMS_STUD_WIDTH_INNER * brick_width) - DIMS_HALF_STUD_WIDTH_OUTER),
+            FreeCAD.Vector(0, 0, DIMS_HALF_STUD_WIDTH_OUTER + (DIMS_STUD_WIDTH_INNER * (brick_depth - 1))),
             FreeCAD.Rotation(0, 0, 0))
         right_datum_plane.ViewObject.Visibility = False
 
