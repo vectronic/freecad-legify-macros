@@ -74,7 +74,7 @@ class BrickRenderer(object):
         right_datum_plane.Support = [(self.doc.YZ_Plane, '')]
         right_datum_plane.MapMode = 'FlatFace'
         right_datum_plane.AttachmentOffset = FreeCAD.Placement(
-            FreeCAD.Vector(0, 0, DIMS_HALF_STUD_WIDTH_OUTER + (DIMS_STUD_WIDTH_INNER * (brick_depth - 1))),
+            FreeCAD.Vector(0, 0, DIMS_HALF_STUD_WIDTH_OUTER + (DIMS_STUD_WIDTH_INNER * (brick_width - 1))),
             FreeCAD.Rotation(0, 0, 0))
         right_datum_plane.ViewObject.Visibility = False
 
