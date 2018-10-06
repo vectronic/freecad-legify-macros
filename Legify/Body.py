@@ -146,7 +146,7 @@ class BodyRenderer(object):
                         FreeCAD.Vector(0, 0, 1), fillet_radius), math.pi, 2 * math.pi))
 
         # Position of rib on brick from origin point (arc first point)
-        constraints.append(Sketcher.Constraint("DistanceX", GEOMETRY_FIRST_CONSTRUCTION_INDEX, VERTEX_START_INDEX,
+        constraints.append(Sketcher.Constraint("DistanceX", GEOMETRY_ORIGIN_INDEX, VERTEX_START_INDEX,
                                                segment_count, VERTEX_START_INDEX, rib_x_offset))
         constraints.append(Sketcher.Constraint("DistanceY", GEOMETRY_ORIGIN_INDEX, VERTEX_START_INDEX, segment_count,
                                                VERTEX_START_INDEX, (bottom_offset + fillet_radius)))
