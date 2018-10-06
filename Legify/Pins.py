@@ -1,7 +1,6 @@
 # coding: UTF-8
 
 from FreeCAD import Console
-from Legify.Common import *
 
 
 class PinsRenderer(object):

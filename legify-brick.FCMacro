@@ -2,10 +2,13 @@
 
 from FreeCAD import Console, Gui
 from PySide import QtCore, QtGui
-from Legify import Brick
+from Legify.Dialog import *
 
 if Gui.activeDocument():
-    Brick.Dialog()
+    Dialog()
+    Gui.activeDocument().activeView().viewAxonometric()
+    Gui.SendMsgToActiveView("ViewFit")
+
 else:
     Console.PrintMessage("No active document!\n")
     dialog = QtGui.QMessageBox(QtGui.QMessageBox.Warning, 'No active document!', "There is no active document!")

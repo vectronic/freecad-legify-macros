@@ -477,7 +477,7 @@ class BodyRenderer(object):
 
         if self.brick_depth > 2:
             side_tube_ribs_sketch = self.brick.newObject("Sketcher::SketchObject", "side_tube_ribs_sketch")
-            side_tube_ribs_sketch.Support = (self.doc.side_inside_datum_plane, '')
+            side_tube_ribs_sketch.Support = (self.doc.left_inside_datum_plane, '')
             side_tube_ribs_sketch.MapMode = 'FlatFace'
 
             # add top_inside_datum_plane to sketch as an edge so that it can be referenced
@@ -702,7 +702,7 @@ class BodyRenderer(object):
         if self.brick_width > 2:
             stick_ribs_sketch.Support = (self.doc.front_inside_datum_plane, '')
         else:
-            stick_ribs_sketch.Support = (self.doc.side_inside_datum_plane, '')
+            stick_ribs_sketch.Support = (self.doc.left_inside_datum_plane, '')
         stick_ribs_sketch.MapMode = 'FlatFace'
 
         # add top_inside_datum_plane to sketch as an edge so that it can be referenced

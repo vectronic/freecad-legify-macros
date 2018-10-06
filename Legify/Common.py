@@ -10,7 +10,7 @@ def _enum(*args):
 
 
 TopStudStyle = _enum("NONE", "CLOSED", "OPEN")
-SideStudStyle = _enum("NONE", "CLOSED", "OPEN", "HOLE")
+SideStudStyle = _enum("NONE", "OPEN", "HOLE")
 PinStyle = _enum("NONE", "PIN", "AXLE")
 HoleStyle = _enum("NONE", "HOLE", "AXLE")
 
@@ -49,6 +49,7 @@ VERTEX_START_INDEX = 1
 VERTEX_END_INDEX = 2
 VERTEX_CENTRE_INDEX = 3
 
+# Origin geometry is indexed at -1
 GEOMETRY_ORIGIN_INDEX = -1
 # External geometry is indexed from -3 descending! https://forum.freecadweb.org/viewtopic.php?t=24211
 GEOMETRY_FIRST_CONSTRUCTION_INDEX = -3
