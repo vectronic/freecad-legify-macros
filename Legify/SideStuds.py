@@ -30,18 +30,23 @@ class SideStudsRenderer(object):
 
         geometries.append(Part.Circle())
         constraints.append(Sketcher.Constraint("Radius", segment_count, DIMS_STUD_OUTER_RADIUS))
-        constraints.append(Sketcher.Constraint("DistanceX", GEOMETRY_ORIGIN_INDEX, VERTEX_START_INDEX, segment_count,
-                                               VERTEX_CENTRE_INDEX, offset))
-        constraints.append(Sketcher.Constraint("DistanceY", GEOMETRY_ORIGIN_INDEX, VERTEX_START_INDEX, segment_count,
-                                               VERTEX_CENTRE_INDEX, DIMS_PLATE_HEIGHT * 1.5))
+        constraints.append(Sketcher.Constraint("DistanceX", SKETCH_GEOMETRY_ORIGIN_INDEX,
+                                               SKETCH_GEOMETRY_VERTEX_START_INDEX, segment_count,
+                                               SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX, offset))
+        constraints.append(Sketcher.Constraint("DistanceY", SKETCH_GEOMETRY_ORIGIN_INDEX,
+                                               SKETCH_GEOMETRY_VERTEX_START_INDEX, segment_count,
+                                               SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX, DIMS_PLATE_HEIGHT * 1.5))
 
         # add a smaller inner circle
         geometries.append(Part.Circle())
         constraints.append(Sketcher.Constraint("Radius", segment_count + 1, DIMS_STUD_INNER_RADIUS))
-        constraints.append(Sketcher.Constraint("DistanceX", GEOMETRY_ORIGIN_INDEX, VERTEX_START_INDEX,
-                                               segment_count + 1, VERTEX_CENTRE_INDEX, offset))
-        constraints.append(Sketcher.Constraint("DistanceY", GEOMETRY_ORIGIN_INDEX, VERTEX_START_INDEX,
-                                               segment_count + 1, VERTEX_CENTRE_INDEX, DIMS_PLATE_HEIGHT * 1.5))
+        constraints.append(Sketcher.Constraint("DistanceX", SKETCH_GEOMETRY_ORIGIN_INDEX,
+                                               SKETCH_GEOMETRY_VERTEX_START_INDEX,
+                                               segment_count + 1, SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX, offset))
+        constraints.append(Sketcher.Constraint("DistanceY", SKETCH_GEOMETRY_ORIGIN_INDEX,
+                                               SKETCH_GEOMETRY_VERTEX_START_INDEX,
+                                               segment_count + 1, SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX,
+                                               DIMS_PLATE_HEIGHT * 1.5))
 
     @staticmethod
     def _add_side_stud_inside_pocket_sketch(geometries, constraints, offset):
@@ -51,10 +56,12 @@ class SideStudsRenderer(object):
 
         geometries.append(Part.Circle())
         constraints.append(Sketcher.Constraint("Radius", segment_count, DIMS_STUD_INNER_RADIUS))
-        constraints.append(Sketcher.Constraint("DistanceX", GEOMETRY_ORIGIN_INDEX, VERTEX_START_INDEX, segment_count,
-                                               VERTEX_CENTRE_INDEX, offset))
-        constraints.append(Sketcher.Constraint("DistanceY", GEOMETRY_ORIGIN_INDEX, VERTEX_START_INDEX, segment_count,
-                                               VERTEX_CENTRE_INDEX, DIMS_PLATE_HEIGHT * 1.5))
+        constraints.append(Sketcher.Constraint("DistanceX", SKETCH_GEOMETRY_ORIGIN_INDEX,
+                                               SKETCH_GEOMETRY_VERTEX_START_INDEX, segment_count,
+                                               SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX, offset))
+        constraints.append(Sketcher.Constraint("DistanceY", SKETCH_GEOMETRY_ORIGIN_INDEX,
+                                               SKETCH_GEOMETRY_VERTEX_START_INDEX, segment_count,
+                                               SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX, DIMS_PLATE_HEIGHT * 1.5))
 
     def _render_side_studs_outside(self, label, plane, count, inverted):
         Console.PrintMessage("render_side_studs_outside({0},{1})\n".format(label, count))
@@ -64,7 +71,7 @@ class SideStudsRenderer(object):
         side_studs_outside_pad_sketch.Support = (plane, '')
         side_studs_outside_pad_sketch.MapMode = 'FlatFace'
 
-        # TODO: fix this test
+        # TODO: fix this test and...
         # xy_plane_z = self.doc.top_datum_plane.Placement.Base.z
 
         geometries = []
@@ -87,20 +94,22 @@ class SideStudsRenderer(object):
         side_studs_outside_pad_sketch.ViewObject.Visibility = False
 
         # determine the stud outer edges
-        # edge_names = []
-        # # TODO: fix this test
-        # for i in range(0, len(side_studs_outside_pad.Shape.Edges)):
-        #     e = side_studs_outside_pad.Shape.Edges[i]
-        #     if len(e.Vertexes) == 1:
-        #         v = e.Vertexes[0]
+        edge_names = []
+        # TODO: ...enable fillet
+        for i in range(0, len(side_studs_outside_pad.Shape.Edges)):
+            e = side_studs_outside_pad.Shape.Edges[i]
+            if len(e.Vertexes) == 1:
+                v = e.Vertexes[0]
+                Console.PrintMessage("v {0}\n".format(v))
+
         #         if v.Point.z == xy_plane_z + DIMS_STUD_HEIGHT:
         #             edge_names.append("Edge" + repr(i + 1))
-        #
-        # # fillet the studs
-        # # TODO: check if inner edge of open or hole stud should be filleted (currently it is)
-        # side_stud_fillets = self.brick.newObject("PartDesign::Fillet", label + "_side_stud_fillets")
-        # side_stud_fillets.Radius = DIMS_EDGE_FILLET
-        # side_stud_fillets.Base = (side_studs_outside_pad, edge_names)
+
+        # fillet the studs
+        # TODO: check if inner edge of open or hole stud should be filleted (currently it is)
+        side_stud_fillets = self.brick.newObject("PartDesign::Fillet", label + "_side_stud_fillets")
+        side_stud_fillets.Radius = DIMS_EDGE_FILLET
+        side_stud_fillets.Base = (side_studs_outside_pad, edge_names)
 
         self.doc.recompute()
 
@@ -137,19 +146,19 @@ class SideStudsRenderer(object):
         if self.front:
             self._render_side_studs_outside("front", self.doc.front_datum_plane, self.width, True)
             if self.style == SideStudStyle.HOLE:
-                self._render_side_studs_inside("front", self.doc.front_datum_plane, self.width, True)
+                self._render_side_studs_inside("front", self.doc.front_datum_plane, self.width, False)
 
         if self.back:
             self._render_side_studs_outside("back", self.doc.back_datum_plane, self.width, False)
             if self.style == SideStudStyle.HOLE:
-                self._render_side_studs_inside("back", self.doc.back_datum_plane, self.width, False)
+                self._render_side_studs_inside("back", self.doc.back_datum_plane, self.width, True)
 
         if self.left:
             self._render_side_studs_outside("left", self.doc.left_datum_plane, self.depth, False)
             if self.style == SideStudStyle.HOLE:
-                self._render_side_studs_inside("left", self.doc.left_datum_plane, self.depth, False)
+                self._render_side_studs_inside("left", self.doc.left_datum_plane, self.depth, True)
 
         if self.right:
             self._render_side_studs_outside("right", self.doc.right_datum_plane, self.depth, True)
             if self.style == SideStudStyle.HOLE:
-                self._render_side_studs_inside("right", self.doc.right_datum_plane, self.depth, True)
+                self._render_side_studs_inside("right", self.doc.right_datum_plane, self.depth, False)
