@@ -699,7 +699,7 @@ class BodyRenderer(object):
         Console.PrintMessage("_render_stick_ribs()\n")
 
         stick_ribs_sketch = self.brick.newObject("Sketcher::SketchObject", "stick_ribs_sketch")
-        if self.brick_width > 2:
+        if self.brick_width > 1:
             stick_ribs_sketch.Support = (self.doc.front_inside_datum_plane, '')
         else:
             stick_ribs_sketch.Support = (self.doc.left_inside_datum_plane, '')
@@ -747,7 +747,7 @@ class BodyRenderer(object):
         # perform the pad
         stick_ribs_pad = self.brick.newObject("PartDesign::Pad", "stick_ribs_pad")
         stick_ribs_pad.Profile = stick_ribs_sketch
-        if self.brick_width > 2:
+        if self.brick_width > 1:
             stick_ribs_pad.Reversed = 1
         # Need to specify Dimension instead of UpToFace because of the following issue:
         # https://freecadweb.org/tracker/view.php?id=3177
