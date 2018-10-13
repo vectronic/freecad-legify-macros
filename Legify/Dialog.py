@@ -4,7 +4,7 @@ from PySide import QtGui, QtCore
 from Legify.Brick import *
 
 
-class Dialog(object):
+class Dialog:
 
     def __init__(self):
 

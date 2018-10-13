@@ -6,19 +6,22 @@ import Sketcher
 from Legify.Common import *
 
 
-class TopStudsRenderer(object):
+class TopStudsRenderer:
 
-    def __init__(self, brick_width, brick_depth, top_stud_style, top_studs_width_count, top_studs_depth_count):
+    def __init__(self):
         Console.PrintMessage("TopStudsRenderer\n")
 
-        self.doc = FreeCAD.activeDocument()
-        self.brick = self.doc.brick
+        self.doc = None
+        self.brick = None
 
-        self.width = brick_width
-        self.depth = brick_depth
-        self.style = top_stud_style
-        self.width_count = top_studs_width_count
-        self.depth_count = top_studs_depth_count
+        self.width = None
+        self.depth = None
+        self.style = None
+        self.width_count = None
+        self.depth_count = None
+
+        self.top_datum_plane = None
+        self.top_inside_datum_plane = None
 
     @staticmethod
     def _add_top_stud_outer_pad_sketch(geometries, constraints, width_offset, depth_offset, style):
@@ -66,10 +69,10 @@ class TopStudsRenderer(object):
             initial_width_offset, initial_depth_offset, style))
 
         top_studs_outside_pad_sketch = self.brick.newObject("Sketcher::SketchObject", "top_studs_outside_pad_sketch")
-        top_studs_outside_pad_sketch.Support = (self.doc.top_datum_plane, '')
+        top_studs_outside_pad_sketch.Support = (self.top_datum_plane, '')
         top_studs_outside_pad_sketch.MapMode = 'FlatFace'
 
-        xy_plane_z = self.doc.top_datum_plane.Placement.Base.z
+        xy_plane_z = self.top_datum_plane.Placement.Base.z
 
         geometries = []
         constraints = []
@@ -91,12 +94,11 @@ class TopStudsRenderer(object):
 
         self.doc.recompute()
 
-        top_studs_outside_pad_sketch.ViewObject.Visibility = False
-
         # determine the stud top edges
         edge_names = []
         for i in range(0, len(top_studs_outside_pad.Shape.Edges)):
             e = top_studs_outside_pad.Shape.Edges[i]
+            # circles have only one vertex
             if len(e.Vertexes) == 1:
                 v = e.Vertexes[0]
                 if v.Point.z == xy_plane_z + DIMS_STUD_HEIGHT:
@@ -109,13 +111,14 @@ class TopStudsRenderer(object):
         top_stud_fillets.Base = (top_studs_outside_pad, edge_names)
 
         self.doc.recompute()
+        top_studs_outside_pad_sketch.ViewObject.Visibility = False
 
     def _render_top_studs_inside(self, initial_width_offset, initial_depth_offset):
         Console.PrintMessage("render_top_studs_inside({0},{1})\n".format(initial_width_offset, initial_depth_offset))
 
         top_studs_inside_pocket_sketch = self.brick\
             .newObject("Sketcher::SketchObject", "top_studs_inside_pocket_sketch")
-        top_studs_inside_pocket_sketch.Support = (self.doc.top_inside_datum_plane, '')
+        top_studs_inside_pocket_sketch.Support = (self.top_inside_datum_plane, '')
         top_studs_inside_pocket_sketch.MapMode = 'FlatFace'
 
         geometries = []
@@ -136,12 +139,23 @@ class TopStudsRenderer(object):
         top_studs_inside_pocket.Reversed = True
         top_studs_inside_pocket.Length = DIMS_TOP_THICKNESS + DIMS_STUD_INSIDE_HOLE_TOP_OFFSET
 
+        self.doc.recompute()
         top_studs_inside_pocket_sketch.ViewObject.Visibility = False
 
-        self.doc.recompute()
-
-    def render(self):
+    def render(self, context):
         Console.PrintMessage("render\n")
+
+        self.doc = context.doc
+        self.brick = context.brick
+
+        self.width = context.width
+        self.depth = context.height
+        self.style = context.top_studs_style
+        self.width_count = context.top_studs_width_count
+        self.depth_count = context.top_studs_depth_count
+
+        self.top_datum_plane = context.top_datum_plane
+        self.top_inside_datum_plane = context.top_inside_datum_plane
 
         initial_width_offset = (self.width - self.width_count) * DIMS_STUD_WIDTH_INNER / 2
         initial_depth_offset = (self.depth - self.depth_count) * DIMS_STUD_WIDTH_INNER / 2

@@ -3,11 +3,11 @@
 from FreeCAD import Console
 
 
-class HolesRenderer(object):
+class HolesRenderer:
 
     def __init__(self):
         Console.PrintMessage("HolesRenderer\n")
 
-    def render(self):
+    def render(self, context):
         Console.PrintMessage("render\n")
         # TODO: render holes

@@ -54,6 +54,13 @@ SKETCH_GEOMETRY_ORIGIN_INDEX = -1
 # External geometry is indexed from -3 descending! https://forum.freecadweb.org/viewtopic.php?t=24211
 SKETCH_GEOMETRY_FIRST_CONSTRUCTION_INDEX = -3
 
+ORIGIN_X_AXIS_INDEX = 0
+ORIGIN_Y_AXIS_INDEX = 1
+ORIGIN_Z_AXIS_INDEX = 2
+ORIGIN_XY_PLANE_INDEX = 3
+ORIGIN_XZ_PLANE_INDEX = 4
+ORIGIN_YZ_PLANE_INDEX = 5
+
 
 def xy_plane_top_left_vector():
     return FreeCAD.Vector(-1, 1, 0)

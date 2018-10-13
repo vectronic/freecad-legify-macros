@@ -8,18 +8,22 @@ from Legify.Common import *
 
 class BodyRenderer(object):
 
-    def __init__(self, brick_width, brick_depth, brick_height, hole_style, holes_offset):
+    def __init__(self):
         Console.PrintMessage("BodyRenderer\n")
 
-        self.brick_width = brick_width
-        self.brick_depth = brick_depth
-        self.brick_height = brick_height
+        self.brick_width = None
+        self.brick_depth = None
+        self.brick_height = None
 
-        self.hole_style = hole_style
-        self.holes_offset = holes_offset
+        self.hole_style = None
+        self.holes_offset = None
 
-        self.doc = FreeCAD.activeDocument()
-        self.brick = self.doc.brick
+        self.doc = None
+        self.brick = None
+
+        self.top_inside_datum_plane = None
+        self.front_inside_datum_plane = None
+        self.left_inside_datum_plane = None
 
     @staticmethod
     def _add_horizontal_sketch_segment(geometries, constraints, length, hor_vec_start, hor_vec_end, reverse):
@@ -258,13 +262,12 @@ class BodyRenderer(object):
         # https://freecadweb.org/tracker/view.php?id=3177
         # https://forum.freecadweb.org/viewtopic.php?f=8&t=24238
         # body_pad.Type = 3
-        # body_pad.UpToFace = (self.doc.top_datum_plane, [""])
+        # body_pad.UpToFace = (self.top_datum_plane, [""])
         body_pad.Length = self.brick_height * DIMS_PLATE_HEIGHT
 
-        body_pad_sketch.ViewObject.Visibility = False
         self.doc.recompute()
 
-        # edge fillets
+        # fillets on all edges existing at this stage
         edge_names = []
         for i in range(0, len(body_pad.Shape.Edges)):
             edge_names.append("Edge" + repr(i + 1))
@@ -274,6 +277,7 @@ class BodyRenderer(object):
         body_edge_fillets.Base = (body_pad, edge_names)
 
         self.doc.recompute()
+        body_pad_sketch.ViewObject.Visibility = False
 
         # TODO: support modern tile with bottom outside pocket (is fillet also required?)
 
@@ -448,23 +452,23 @@ class BodyRenderer(object):
         body_pocket = self.brick.newObject("PartDesign::Pocket", "body_pocket")
         body_pocket.Profile = body_pocket_sketch
         body_pocket.Type = 3
-        body_pocket.UpToFace = (self.doc.top_inside_datum_plane, [""])
+        body_pocket.UpToFace = (self.top_inside_datum_plane, [""])
         body_pocket.Reversed = True
 
-        body_pocket_sketch.ViewObject.Visibility = False
         self.doc.recompute()
+        body_pocket_sketch.ViewObject.Visibility = False
 
     def _render_tube_ribs(self):
         Console.PrintMessage("_render_tube_ribs()\n")
 
         if self.brick_width > 2:
             front_tube_ribs_sketch = self.brick.newObject("Sketcher::SketchObject", "front_tube_ribs_sketch")
-            front_tube_ribs_sketch.Support = (self.doc.front_inside_datum_plane, '')
+            front_tube_ribs_sketch.Support = (self.front_inside_datum_plane, '')
             front_tube_ribs_sketch.MapMode = 'FlatFace'
 
             # add top_inside_datum_plane to sketch as an edge so that it can be referenced
             # this will add a line geometry element to the sketch as item 0
-            front_tube_ribs_sketch.addExternal(self.doc.top_inside_datum_plane.Label, '')
+            front_tube_ribs_sketch.addExternal(self.top_inside_datum_plane.Label, '')
 
             geometries = []
             constraints = []
@@ -487,7 +491,6 @@ class BodyRenderer(object):
 
             front_tube_ribs_sketch.addGeometry(geometries, False)
             front_tube_ribs_sketch.addConstraint(constraints)
-            self.doc.recompute()
 
             # perform the pad
             front_tube_ribs_pad = self.brick.newObject("PartDesign::Pad", "front_tube_ribs_pad")
@@ -499,16 +502,17 @@ class BodyRenderer(object):
             front_tube_ribs_pad.Length = (self.brick_depth - 1) * DIMS_STUD_WIDTH_INNER + \
                                          (2 * DIMS_HALF_STUD_WIDTH_OUTER) - (2 * DIMS_SIDE_THICKNESS)
 
+            self.doc.recompute()
             front_tube_ribs_sketch.ViewObject.Visibility = False
 
         if self.brick_depth > 2:
             side_tube_ribs_sketch = self.brick.newObject("Sketcher::SketchObject", "side_tube_ribs_sketch")
-            side_tube_ribs_sketch.Support = (self.doc.left_inside_datum_plane, '')
+            side_tube_ribs_sketch.Support = (self.left_inside_datum_plane, '')
             side_tube_ribs_sketch.MapMode = 'FlatFace'
 
             # add top_inside_datum_plane to sketch as an edge so that it can be referenced
             # this will add a line geometry element to the sketch as item 0
-            side_tube_ribs_sketch.addExternal(self.doc.top_inside_datum_plane.Label, '')
+            side_tube_ribs_sketch.addExternal(self.top_inside_datum_plane.Label, '')
 
             geometries = []
             constraints = []
@@ -531,7 +535,6 @@ class BodyRenderer(object):
 
             side_tube_ribs_sketch.addGeometry(geometries, False)
             side_tube_ribs_sketch.addConstraint(constraints)
-            self.doc.recompute()
 
             # perform the pad
             side_tube_ribs_pad = self.brick.newObject("PartDesign::Pad", "side_tube_ribs_pad")
@@ -542,9 +545,8 @@ class BodyRenderer(object):
             side_tube_ribs_pad.Length = (self.brick_width - 1) * DIMS_STUD_WIDTH_INNER + \
                                         (2 * DIMS_HALF_STUD_WIDTH_OUTER) - (2 * DIMS_SIDE_THICKNESS)
 
+            self.doc.recompute()
             side_tube_ribs_sketch.ViewObject.Visibility = False
-
-        self.doc.recompute()
 
     def _render_tubes(self):
         Console.PrintMessage("_render_tubes()\n")
@@ -552,7 +554,7 @@ class BodyRenderer(object):
         # tubes pad
 
         tubes_pad_sketch = self.brick.newObject("Sketcher::SketchObject", "tubes_pad_sketch")
-        tubes_pad_sketch.Support = (self.doc.top_inside_datum_plane, '')
+        tubes_pad_sketch.Support = (self.top_inside_datum_plane, '')
         tubes_pad_sketch.MapMode = 'FlatFace'
 
         geometries = []
@@ -563,7 +565,6 @@ class BodyRenderer(object):
 
         tubes_pad_sketch.addGeometry(geometries, False)
         tubes_pad_sketch.addConstraint(constraints)
-        self.doc.recompute()
 
         # create array if needed
         if self.brick_width > 2 or self.brick_depth > 2:
@@ -587,18 +588,18 @@ class BodyRenderer(object):
         # https://freecadweb.org/tracker/view.php?id=3177
         # https://forum.freecadweb.org/viewtopic.php?f=8&t=24238
         # tubes_pad.Type = 3
-        # tubes_pad.UpToFace = (self.doc.XY_Plane, [""])
+        # tubes_pad.UpToFace = (self.XY_Plane, [""])
         # tubes_pad.Offset = -1 * DIMS_STICK_AND_TUBE_BOTTOM_OFFSET
         tubes_pad.Length = ((self.brick_height * DIMS_PLATE_HEIGHT)
                             - DIMS_TOP_THICKNESS - DIMS_STICK_AND_TUBE_BOTTOM_OFFSET)
 
-        tubes_pad_sketch.ViewObject.Visibility = False
         self.doc.recompute()
+        tubes_pad_sketch.ViewObject.Visibility = False
 
         # tubes pocket
 
         tubes_pocket_sketch = self.brick.newObject("Sketcher::SketchObject", "tubes_pocket_sketch")
-        tubes_pocket_sketch.Support = (self.doc.top_inside_datum_plane, '')
+        tubes_pocket_sketch.Support = (self.top_inside_datum_plane, '')
         tubes_pocket_sketch.MapMode = 'FlatFace'
 
         geometries = []
@@ -698,7 +699,6 @@ class BodyRenderer(object):
 
         tubes_pocket_sketch.addGeometry(geometries, False)
         tubes_pocket_sketch.addConstraint(constraints)
-        self.doc.recompute()
 
         # Set circle as a construction line
         tubes_pocket_sketch.toggleConstruction(0)
@@ -727,27 +727,27 @@ class BodyRenderer(object):
         # https://freecadweb.org/tracker/view.php?id=3177
         # https://forum.freecadweb.org/viewtopic.php?f=8&t=24238
         # tubes_pocket.Type = 3
-        # tubes_pocket.UpToFace = (self.doc.XY_Plane, [""])
+        # tubes_pocket.UpToFace = (self.XY_Plane, [""])
         # tubes_pocket.Offset = -1 * DIMS_STICK_AND_TUBE_BOTTOM_OFFSET
         tubes_pocket.Length = ((self.brick_height * DIMS_PLATE_HEIGHT)
                                - DIMS_TOP_THICKNESS - DIMS_STICK_AND_TUBE_BOTTOM_OFFSET)
 
-        tubes_pocket_sketch.ViewObject.Visibility = False
         self.doc.recompute()
+        tubes_pocket_sketch.ViewObject.Visibility = False
 
     def _render_stick_ribs(self):
         Console.PrintMessage("_render_stick_ribs()\n")
 
         stick_ribs_sketch = self.brick.newObject("Sketcher::SketchObject", "stick_ribs_sketch")
         if self.brick_width > 1:
-            stick_ribs_sketch.Support = (self.doc.front_inside_datum_plane, '')
+            stick_ribs_sketch.Support = (self.front_inside_datum_plane, '')
         else:
-            stick_ribs_sketch.Support = (self.doc.left_inside_datum_plane, '')
+            stick_ribs_sketch.Support = (self.left_inside_datum_plane, '')
         stick_ribs_sketch.MapMode = 'FlatFace'
 
         # add top_inside_datum_plane to sketch as an edge so that it can be referenced
         # this will add a line geometry element to the sketch as item 0
-        stick_ribs_sketch.addExternal(self.doc.top_inside_datum_plane.Label, '')
+        stick_ribs_sketch.addExternal(self.top_inside_datum_plane.Label, '')
 
         geometries = []
         constraints = []
@@ -782,7 +782,6 @@ class BodyRenderer(object):
 
         stick_ribs_sketch.addGeometry(geometries, False)
         stick_ribs_sketch.addConstraint(constraints)
-        self.doc.recompute()
 
         # perform the pad
         stick_ribs_pad = self.brick.newObject("PartDesign::Pad", "stick_ribs_pad")
@@ -794,15 +793,14 @@ class BodyRenderer(object):
         # https://forum.freecadweb.org/viewtopic.php?f=8&t=24238
         stick_ribs_pad.Length = (2 * DIMS_HALF_STUD_WIDTH_OUTER) - (2 * DIMS_SIDE_THICKNESS)
 
-        stick_ribs_sketch.ViewObject.Visibility = False
-
         self.doc.recompute()
+        stick_ribs_sketch.ViewObject.Visibility = False
 
     def _render_sticks(self, hollow_sticks):
         Console.PrintMessage("_render_sticks({0})\n".format(hollow_sticks))
 
         sticks_pad_sketch = self.brick.newObject("Sketcher::SketchObject", "sticks_pad_sketch")
-        sticks_pad_sketch.Support = (self.doc.top_inside_datum_plane, '')
+        sticks_pad_sketch.Support = (self.top_inside_datum_plane, '')
         sticks_pad_sketch.MapMode = 'FlatFace'
 
         geometries = []
@@ -828,7 +826,6 @@ class BodyRenderer(object):
 
         sticks_pad_sketch.addGeometry(geometries, False)
         sticks_pad_sketch.addConstraint(constraints)
-        self.doc.recompute()
 
         if self.brick_width > 1:
             sticks_pad_sketch.addRectangularArray([0], FreeCAD.Vector(DIMS_STUD_WIDTH_INNER, 0, 0), False,
@@ -845,16 +842,17 @@ class BodyRenderer(object):
         # https://freecadweb.org/tracker/view.php?id=3177
         # https://forum.freecadweb.org/viewtopic.php?f=8&t=24238
         # sticks_pad.Type = 3
-        # sticks_pad.UpToFace = (self.doc.XY_Plane, [""])
+        # sticks_pad.UpToFace = (self.XY_Plane, [""])
         # sticks_pad.Offset = -1 * DIMS_STICK_AND_TUBE_BOTTOM_OFFSET
         sticks_pad.Length = ((self.brick_height * DIMS_PLATE_HEIGHT)
                              - DIMS_TOP_THICKNESS - DIMS_STICK_AND_TUBE_BOTTOM_OFFSET)
 
+        self.doc.recompute()
         sticks_pad_sketch.ViewObject.Visibility = False
 
         if hollow_sticks:
             sticks_pocket_sketch = self.brick.newObject("Sketcher::SketchObject", "sticks_pocket_sketch")
-            sticks_pocket_sketch.Support = (self.doc.top_inside_datum_plane, '')
+            sticks_pocket_sketch.Support = (self.top_inside_datum_plane, '')
             sticks_pocket_sketch.MapMode = 'FlatFace'
 
             geometries = []
@@ -882,7 +880,6 @@ class BodyRenderer(object):
 
             sticks_pocket_sketch.addGeometry(geometries, False)
             sticks_pocket_sketch.addConstraint(constraints)
-            self.doc.recompute()
 
             if self.brick_width > 1:
                 sticks_pocket_sketch.addRectangularArray([0], FreeCAD.Vector(DIMS_STUD_WIDTH_INNER, 0, 0), False,
@@ -898,14 +895,13 @@ class BodyRenderer(object):
             # https://freecadweb.org/tracker/view.php?id=3177
             # https://forum.freecadweb.org/viewtopic.php?f=8&t=24238
             # sticks_pad.Type = 3
-            # sticks_pad.UpToFace = (self.doc.XY_Plane, [""])
+            # sticks_pad.UpToFace = (self.XY_Plane, [""])
             # sticks_pad.Offset = -1 * DIMS_STICK_AND_TUBE_BOTTOM_OFFSET
             sticks_pocket.Length = ((self.brick_height * DIMS_PLATE_HEIGHT)
                                     - DIMS_TOP_THICKNESS - DIMS_STICK_AND_TUBE_BOTTOM_OFFSET)
 
+            self.doc.recompute()
             sticks_pocket_sketch.ViewObject.Visibility = False
-
-        self.doc.recompute()
 
     def _render_tubes_or_sticks(self):
         Console.PrintMessage("_render_tubes_or_sticks()\n")
@@ -929,8 +925,22 @@ class BodyRenderer(object):
         if sticks:
             self._render_sticks(hollow_sticks)
 
-    def render(self):
+    def render(self, context):
         Console.PrintMessage("render\n")
+
+        self.brick_width = context.width
+        self.brick_depth = context.depth
+        self.brick_height = context.height
+
+        self.hole_style = context.hole_style
+        self.holes_offset = context.holes_offset
+
+        self.doc = context.doc
+        self.brick = context.brick
+
+        self.top_inside_datum_plane = context.top_inside_datum_plane
+        self.front_inside_datum_plane = context.front_inside_datum_plane
+        self.left_inside_datum_plane = context.left_inside_datum_plane
 
         self._render_body_pad_and_fillets()
 
