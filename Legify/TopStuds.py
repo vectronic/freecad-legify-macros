@@ -149,7 +149,7 @@ class TopStudsRenderer:
         self.brick = context.brick
 
         self.width = context.width
-        self.depth = context.height
+        self.depth = context.depth
         self.style = context.top_studs_style
         self.width_count = context.top_studs_width_count
         self.depth_count = context.top_studs_depth_count
