@@ -43,7 +43,9 @@ class BrickContext:
 
         self.top_inside_datum_plane = None
         self.front_inside_datum_plane = None
+        self.back_inside_datum_plane = None
         self.left_inside_datum_plane = None
+        self.right_inside_datum_plane = None
 
         self.doc = None
         self.brick = None
@@ -379,6 +381,18 @@ class BrickRenderer:
         front_inside_datum_plane.ViewObject.Visibility = False
         context.front_inside_datum_plane = front_inside_datum_plane
 
+        # Create back inside datum plane
+        back_inside_datum_plane = context.brick.newObject("PartDesign::Plane", "back_inside_datum_plane")
+        back_inside_datum_plane.MapReversed = False
+        back_inside_datum_plane.Support = [(context.brick.Origin.OriginFeatures[ORIGIN_XZ_PLANE_INDEX], '')]
+        back_inside_datum_plane.MapMode = 'FlatFace'
+        back_inside_datum_plane.AttachmentOffset = FreeCAD.Placement(
+            FreeCAD.Vector(0, 0, -1 * ((self.depth - 1) * DIMS_STUD_WIDTH_INNER +
+                           (DIMS_HALF_STUD_WIDTH_OUTER - DIMS_SIDE_THICKNESS))),
+            FreeCAD.Rotation(0, 0, 0))
+        back_inside_datum_plane.ViewObject.Visibility = False
+        context.back_inside_datum_plane = back_inside_datum_plane
+
         # Create left inside datum plane
         left_inside_datum_plane = context.brick.newObject("PartDesign::Plane", "left_inside_datum_plane")
         left_inside_datum_plane.MapReversed = False
@@ -389,6 +403,18 @@ class BrickRenderer:
             FreeCAD.Rotation(0, 0, 0))
         left_inside_datum_plane.ViewObject.Visibility = False
         context.left_inside_datum_plane = left_inside_datum_plane
+
+        # Create right inside datum plane
+        right_inside_datum_plane = context.brick.newObject("PartDesign::Plane", "right_inside_datum_plane")
+        right_inside_datum_plane.MapReversed = False
+        right_inside_datum_plane.Support = [(context.brick.Origin.OriginFeatures[ORIGIN_YZ_PLANE_INDEX], '')]
+        right_inside_datum_plane.MapMode = 'FlatFace'
+        right_inside_datum_plane.AttachmentOffset = FreeCAD.Placement(
+            FreeCAD.Vector(0, 0, (self.width - 1) * DIMS_STUD_WIDTH_INNER +
+                           (DIMS_HALF_STUD_WIDTH_OUTER - DIMS_SIDE_THICKNESS)),
+            FreeCAD.Rotation(0, 0, 0))
+        right_inside_datum_plane.ViewObject.Visibility = False
+        context.right_inside_datum_plane = right_inside_datum_plane
 
     def render(self):
 
