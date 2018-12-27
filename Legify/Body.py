@@ -277,15 +277,15 @@ class BodyRenderer(object):
         self.doc.recompute()
         body_pad_sketch.ViewObject.Visibility = False
 
-        # TODO: support modern tile with bottom outside pocket (is fillet also required?)
+        # TODO: support modern tile where the bottom has a small outside pocket (and check if fillet is also required)
 
     def _render_body_pocket(self):
         Console.PrintMessage("_render_body_pocket()\n")
 
         body_pocket_sketch = self.brick.newObject("Sketcher::SketchObject", "body_pocket_sketch")
 
-        # TODO: support modern 2x1 tile and dual technic hole brick with rib variation and no tube/stick
-        # TODO: what to replace ribs with if side studs exist with holes (ribs are visible inside...)?
+        # TODO: support rib variation in modern 2x1 tile and 2 x 1 technic brick with 2 non-offset holes
+        # TODO: determine a replacement for internal ribs if side studs exist with holes
         ribs = self.brick_height == 3 and self.brick_depth > 1 and self.brick_width > 1
 
         geometries = []

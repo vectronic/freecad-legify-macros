@@ -109,7 +109,7 @@ class SideStudsRenderer:
                         face_names.append("Face" + repr(i + 1))
 
         # fillet the studs
-        # TODO: check if inner edge of open or hole stud should be filleted (currently it is)
+        # TODO: determine if the inner edge of open or hole studs should be filleted
         side_stud_fillets = self.brick.newObject("PartDesign::Fillet", label + "_side_stud_fillets")
         side_stud_fillets.Radius = DIMS_EDGE_FILLET
         side_stud_fillets.Base = (side_studs_outside_pad, face_names)
