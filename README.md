@@ -49,10 +49,12 @@ These all form the basis of a future planned project...
 - [ ] Determine if the inner edge of open studs and hole studs should be filleted
 
 ## Screenshots
-![Parameters](images/parameters.png?raw=true "Parameters")
+![Parameters](images/parameters.png "Parameters")
 
-![Simple](images/simple.png?raw=true "Simple")
+![Simple](images/simple.png "Simple")
 
-![Classic](images/classic.png?raw=true "Classic")
+![Classic](images/classic.png "Classic")
 
-![Odd](images/odd.png?raw=true "Odd")
+![Odd](images/odd.png "Odd")
+
+![Sketch](images/sketch.png "Sketch")
