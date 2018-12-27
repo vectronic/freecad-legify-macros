@@ -72,8 +72,6 @@ class TopStudsRenderer:
         top_studs_outside_pad_sketch.Support = (self.top_datum_plane, '')
         top_studs_outside_pad_sketch.MapMode = 'FlatFace'
 
-        xy_plane_z = self.top_datum_plane.Placement.Base.z
-
         geometries = []
         constraints = []
 
@@ -95,6 +93,7 @@ class TopStudsRenderer:
         self.doc.recompute()
 
         # determine the stud top edges
+        xy_plane_z = self.top_datum_plane.Placement.Base.z
         edge_names = []
         for i in range(0, len(top_studs_outside_pad.Shape.Edges)):
             e = top_studs_outside_pad.Shape.Edges[i]
