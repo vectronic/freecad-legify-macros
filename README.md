@@ -58,3 +58,7 @@ These all form the basis of a future planned project...
 ![Odd](images/odd.png "Odd")
 
 ![Sketch](images/sketch.png "Sketch")
+
+## Credit
+
+Initial drawing and dimensions used as reference for this work was done by [Nick Turo-Shields](https://grabcad.com/library/2x4-lego-brick-1)
