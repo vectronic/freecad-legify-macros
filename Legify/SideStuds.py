@@ -76,9 +76,6 @@ class SideStudsRenderer:
         side_studs_outside_pad_sketch.Support = (plane, '')
         side_studs_outside_pad_sketch.MapMode = 'FlatFace'
 
-        # TODO: fix this test and...
-        # xy_plane_z = self.top_datum_plane.Placement.Base.z
-
         geometries = []
         constraints = []
 
@@ -97,23 +94,25 @@ class SideStudsRenderer:
         self.doc.recompute()
 
         # determine the stud outer edges
-        edge_names = []
-        # TODO: ...enable fillet
-        for i in range(0, len(side_studs_outside_pad.Shape.Edges)):
-            e = side_studs_outside_pad.Shape.Edges[i]
-            # circles have only one vertex
-            if len(e.Vertexes) == 1:
-                v = e.Vertexes[0]
-                Console.PrintMessage("v {0}\n".format(v))
 
-        #         if v.Point.z == xy_plane_z + DIMS_STUD_HEIGHT:
-        #             edge_names.append("Edge" + repr(i + 1))
+        face_names = []
+        for i in range(0, len(side_studs_outside_pad.Shape.Faces)):
+            f = side_studs_outside_pad.Shape.Faces[i]
+            # desired faces have two edges, both circles
+            if len(f.Edges) == 2:
+                if len(f.Edges[0].Vertexes) == 1 and len(f.Edges[1].Vertexes) == 1:
+                    n1 = f.normalAt(0, 0)
+                    n2 = plane.Shape.normalAt(0,0)
+                    n2 = n2 if inverted else n2.negative()
+                    if n1.isEqual(n2, 1e-7):
+                        v = f.Vertexes[0]
+                        face_names.append("Face" + repr(i + 1))
 
         # fillet the studs
         # TODO: check if inner edge of open or hole stud should be filleted (currently it is)
-        # side_stud_fillets = self.brick.newObject("PartDesign::Fillet", label + "_side_stud_fillets")
-        # side_stud_fillets.Radius = DIMS_EDGE_FILLET
-        # side_stud_fillets.Base = (side_studs_outside_pad, edge_names)
+        side_stud_fillets = self.brick.newObject("PartDesign::Fillet", label + "_side_stud_fillets")
+        side_stud_fillets.Radius = DIMS_EDGE_FILLET
+        side_stud_fillets.Base = (side_studs_outside_pad, face_names)
 
         self.doc.recompute()
         side_studs_outside_pad_sketch.ViewObject.Visibility = False
