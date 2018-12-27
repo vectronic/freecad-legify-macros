@@ -36,7 +36,7 @@ These all form the basis of a future planned project...
 1. Modify parameters as desired in the popup dialog 
 1. Click OK
 1. Wait for for a lot of sketches, constraints, pads, pockets and fillets to be rendered
-1. Regard the resultant beauty 
+1. Admire the resulting beauty 
 
 ## TODO
 
