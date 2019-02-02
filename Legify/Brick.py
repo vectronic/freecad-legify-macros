@@ -1,6 +1,6 @@
 # coding: UTF-8
 
-from FreeCAD import Console
+from FreeCAD import Console, Placement, Rotation, Vector, activeDocument
 from Legify.Body import *
 from Legify.Holes import *
 from Legify.Pins import *
@@ -309,9 +309,7 @@ class BrickRenderer:
         top_datum_plane.MapReversed = False
         top_datum_plane.Support = [(context.brick.Origin.OriginFeatures[ORIGIN_XY_PLANE_INDEX], '')]
         top_datum_plane.MapMode = 'FlatFace'
-        top_datum_plane.AttachmentOffset = FreeCAD.Placement(
-            FreeCAD.Vector(0, 0, (self.height * DIMS_PLATE_HEIGHT)),
-            FreeCAD.Rotation(0, 0, 0))
+        top_datum_plane.AttachmentOffset = Placement(Vector(0, 0, (self.height * DIMS_PLATE_HEIGHT)), Rotation(0, 0, 0))
         top_datum_plane.ViewObject.Visibility = False
         context.top_datum_plane = top_datum_plane
 
@@ -320,9 +318,7 @@ class BrickRenderer:
         front_datum_plane.MapReversed = False
         front_datum_plane.Support = [(context.brick.Origin.OriginFeatures[ORIGIN_XZ_PLANE_INDEX], '')]
         front_datum_plane.MapMode = 'FlatFace'
-        front_datum_plane.AttachmentOffset = FreeCAD.Placement(
-            FreeCAD.Vector(0, 0, DIMS_HALF_STUD_WIDTH_OUTER),
-            FreeCAD.Rotation(0, 0, 0))
+        front_datum_plane.AttachmentOffset = Placement(Vector(0, 0, DIMS_HALF_STUD_WIDTH_OUTER), Rotation(0, 0, 0))
         front_datum_plane.ViewObject.Visibility = False
         context.front_datum_plane = front_datum_plane
 
@@ -331,9 +327,9 @@ class BrickRenderer:
         back_datum_plane.MapReversed = False
         back_datum_plane.Support = [(context.brick.Origin.OriginFeatures[ORIGIN_XZ_PLANE_INDEX], '')]
         back_datum_plane.MapMode = 'FlatFace'
-        back_datum_plane.AttachmentOffset = FreeCAD.Placement(
-            FreeCAD.Vector(0, 0, -1 * (DIMS_HALF_STUD_WIDTH_OUTER + (DIMS_STUD_WIDTH_INNER * (context.depth - 1)))),
-            FreeCAD.Rotation(0, 0, 0))
+        back_datum_plane.AttachmentOffset = Placement(
+            Vector(0, 0, -1 * (DIMS_HALF_STUD_WIDTH_OUTER + (DIMS_STUD_WIDTH_INNER * (context.depth - 1)))),
+            Rotation(0, 0, 0))
         back_datum_plane.ViewObject.Visibility = False
         context.back_datum_plane = back_datum_plane
 
@@ -342,9 +338,7 @@ class BrickRenderer:
         left_datum_plane.MapReversed = False
         left_datum_plane.Support = [(context.brick.Origin.OriginFeatures[ORIGIN_YZ_PLANE_INDEX], '')]
         left_datum_plane.MapMode = 'FlatFace'
-        left_datum_plane.AttachmentOffset = FreeCAD.Placement(
-            FreeCAD.Vector(0, 0, -1 * DIMS_HALF_STUD_WIDTH_OUTER),
-            FreeCAD.Rotation(0, 0, 0))
+        left_datum_plane.AttachmentOffset = Placement(Vector(0, 0, -1 * DIMS_HALF_STUD_WIDTH_OUTER), Rotation(0, 0, 0))
         left_datum_plane.ViewObject.Visibility = False
         context.left_datum_plane = left_datum_plane
 
@@ -353,9 +347,8 @@ class BrickRenderer:
         right_datum_plane.MapReversed = False
         right_datum_plane.Support = [(context.brick.Origin.OriginFeatures[ORIGIN_YZ_PLANE_INDEX], '')]
         right_datum_plane.MapMode = 'FlatFace'
-        right_datum_plane.AttachmentOffset = FreeCAD.Placement(
-            FreeCAD.Vector(0, 0, DIMS_HALF_STUD_WIDTH_OUTER + (DIMS_STUD_WIDTH_INNER * (context.width - 1))),
-            FreeCAD.Rotation(0, 0, 0))
+        right_datum_plane.AttachmentOffset = Placement(
+            Vector(0, 0, DIMS_HALF_STUD_WIDTH_OUTER + (DIMS_STUD_WIDTH_INNER * (context.width - 1))), Rotation(0, 0, 0))
         right_datum_plane.ViewObject.Visibility = False
         context.right_datum_plane = right_datum_plane
 
@@ -364,9 +357,8 @@ class BrickRenderer:
         top_inside_datum_plane.MapReversed = False
         top_inside_datum_plane.Support = [(context.brick.Origin.OriginFeatures[ORIGIN_XY_PLANE_INDEX], '')]
         top_inside_datum_plane.MapMode = 'FlatFace'
-        top_inside_datum_plane.AttachmentOffset = FreeCAD.Placement(
-            FreeCAD.Vector(0, 0, (self.height * DIMS_PLATE_HEIGHT) - DIMS_TOP_THICKNESS),
-            FreeCAD.Rotation(0, 0, 0))
+        top_inside_datum_plane.AttachmentOffset = Placement(
+            Vector(0, 0, (self.height * DIMS_PLATE_HEIGHT) - DIMS_TOP_THICKNESS), Rotation(0, 0, 0))
         top_inside_datum_plane.ViewObject.Visibility = False
         context.top_inside_datum_plane = top_inside_datum_plane
 
@@ -375,9 +367,8 @@ class BrickRenderer:
         front_inside_datum_plane.MapReversed = False
         front_inside_datum_plane.Support = [(context.brick.Origin.OriginFeatures[ORIGIN_XZ_PLANE_INDEX], '')]
         front_inside_datum_plane.MapMode = 'FlatFace'
-        front_inside_datum_plane.AttachmentOffset = FreeCAD.Placement(
-            FreeCAD.Vector(0, 0, DIMS_HALF_STUD_WIDTH_OUTER - DIMS_SIDE_THICKNESS),
-            FreeCAD.Rotation(0, 0, 0))
+        front_inside_datum_plane.AttachmentOffset = Placement(
+            Vector(0, 0, DIMS_HALF_STUD_WIDTH_OUTER - DIMS_SIDE_THICKNESS), Rotation(0, 0, 0))
         front_inside_datum_plane.ViewObject.Visibility = False
         context.front_inside_datum_plane = front_inside_datum_plane
 
@@ -386,10 +377,9 @@ class BrickRenderer:
         back_inside_datum_plane.MapReversed = False
         back_inside_datum_plane.Support = [(context.brick.Origin.OriginFeatures[ORIGIN_XZ_PLANE_INDEX], '')]
         back_inside_datum_plane.MapMode = 'FlatFace'
-        back_inside_datum_plane.AttachmentOffset = FreeCAD.Placement(
-            FreeCAD.Vector(0, 0, -1 * ((self.depth - 1) * DIMS_STUD_WIDTH_INNER +
-                           (DIMS_HALF_STUD_WIDTH_OUTER - DIMS_SIDE_THICKNESS))),
-            FreeCAD.Rotation(0, 0, 0))
+        back_inside_datum_plane.AttachmentOffset = Placement(
+            Vector(0, 0, -1 * ((self.depth - 1) * DIMS_STUD_WIDTH_INNER +
+                   (DIMS_HALF_STUD_WIDTH_OUTER - DIMS_SIDE_THICKNESS))), Rotation(0, 0, 0))
         back_inside_datum_plane.ViewObject.Visibility = False
         context.back_inside_datum_plane = back_inside_datum_plane
 
@@ -398,9 +388,8 @@ class BrickRenderer:
         left_inside_datum_plane.MapReversed = False
         left_inside_datum_plane.Support = [(context.brick.Origin.OriginFeatures[ORIGIN_YZ_PLANE_INDEX], '')]
         left_inside_datum_plane.MapMode = 'FlatFace'
-        left_inside_datum_plane.AttachmentOffset = FreeCAD.Placement(
-            FreeCAD.Vector(0, 0, -1 * (DIMS_HALF_STUD_WIDTH_OUTER - DIMS_SIDE_THICKNESS)),
-            FreeCAD.Rotation(0, 0, 0))
+        left_inside_datum_plane.AttachmentOffset = Placement(
+            Vector(0, 0, -1 * (DIMS_HALF_STUD_WIDTH_OUTER - DIMS_SIDE_THICKNESS)), Rotation(0, 0, 0))
         left_inside_datum_plane.ViewObject.Visibility = False
         context.left_inside_datum_plane = left_inside_datum_plane
 
@@ -409,10 +398,9 @@ class BrickRenderer:
         right_inside_datum_plane.MapReversed = False
         right_inside_datum_plane.Support = [(context.brick.Origin.OriginFeatures[ORIGIN_YZ_PLANE_INDEX], '')]
         right_inside_datum_plane.MapMode = 'FlatFace'
-        right_inside_datum_plane.AttachmentOffset = FreeCAD.Placement(
-            FreeCAD.Vector(0, 0, (self.width - 1) * DIMS_STUD_WIDTH_INNER +
-                           (DIMS_HALF_STUD_WIDTH_OUTER - DIMS_SIDE_THICKNESS)),
-            FreeCAD.Rotation(0, 0, 0))
+        right_inside_datum_plane.AttachmentOffset = Placement(
+            Vector(0, 0, (self.width - 1) * DIMS_STUD_WIDTH_INNER +
+                   (DIMS_HALF_STUD_WIDTH_OUTER - DIMS_SIDE_THICKNESS)), Rotation(0, 0, 0))
         right_inside_datum_plane.ViewObject.Visibility = False
         context.right_inside_datum_plane = right_inside_datum_plane
 
@@ -449,7 +437,7 @@ class BrickRenderer:
             if self.hole_style != HoleStyle.NONE:
                 context.holes_offset = self.holes_offset
 
-            context.doc = FreeCAD.activeDocument()
+            context.doc = activeDocument()
             context.brick = context.doc.addObject("PartDesign::Body", "brick")
 
             self._create_datum_planes(context)

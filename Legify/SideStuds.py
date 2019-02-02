@@ -102,10 +102,9 @@ class SideStudsRenderer:
             if len(f.Edges) == 2:
                 if len(f.Edges[0].Vertexes) == 1 and len(f.Edges[1].Vertexes) == 1:
                     n1 = f.normalAt(0, 0)
-                    n2 = plane.Shape.normalAt(0,0)
+                    n2 = plane.Shape.normalAt(0, 0)
                     n2 = n2 if inverted else n2.negative()
                     if n1.isEqual(n2, 1e-7):
-                        v = f.Vertexes[0]
                         face_names.append("Face" + repr(i + 1))
 
         # fillet the studs

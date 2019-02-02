@@ -1,6 +1,6 @@
 # coding: UTF-8
 
-from FreeCAD import Console
+from FreeCAD import Console, Vector
 import Part
 import Sketcher
 from Legify.Common import *
@@ -156,9 +156,8 @@ class BodyRenderer(object):
 
         # Fillet on top of rib
         geometries.append(Part.ArcOfCircle(
-            Part.Circle(FreeCAD.Vector(rib_x_offset + fillet_radius,
-                                       (bottom_offset + fillet_radius), 0),
-                        FreeCAD.Vector(0, 0, 1), fillet_radius), math.pi, 2 * math.pi))
+            Part.Circle(Vector(rib_x_offset + fillet_radius, (bottom_offset + fillet_radius), 0),
+                        Vector(0, 0, 1), fillet_radius), math.pi, 2 * math.pi))
 
         # Position of rib on brick from origin point (arc first point)
         constraints.append(Sketcher.Constraint("DistanceX", SKETCH_GEOMETRY_ORIGIN_INDEX,
@@ -260,7 +259,7 @@ class BodyRenderer(object):
         # perform the pad
         body_pad = self.brick.newObject("PartDesign::Pad", "body_pad")
         body_pad.Profile = body_pad_sketch
-        body_pad.Type = 3 # UpToFace
+        body_pad.Type = 3  # UpToFace
         body_pad.UpToFace = (self.top_datum_plane, [""])
 
         self.doc.recompute()
@@ -572,13 +571,13 @@ class BodyRenderer(object):
         if self.brick_width > 2 or self.brick_depth > 2:
             geometries = [0]
             if self.brick_width == 2 and self.brick_depth > 2:
-                tubes_pad_sketch.addRectangularArray(geometries, FreeCAD.Vector(0, DIMS_STUD_WIDTH_INNER, 0), False,
+                tubes_pad_sketch.addRectangularArray(geometries, Vector(0, DIMS_STUD_WIDTH_INNER, 0), False,
                                                      self.brick_depth - 1, self.brick_width - 1, True)
             elif self.brick_width > 2 and self.brick_depth == 2:
-                tubes_pad_sketch.addRectangularArray(geometries, FreeCAD.Vector(DIMS_STUD_WIDTH_INNER, 0, 0), False,
+                tubes_pad_sketch.addRectangularArray(geometries, Vector(DIMS_STUD_WIDTH_INNER, 0, 0), False,
                                                      self.brick_width - 1, self.brick_depth - 1, True)
             else:
-                tubes_pad_sketch.addRectangularArray(geometries, FreeCAD.Vector(0, DIMS_STUD_WIDTH_INNER, 0), False,
+                tubes_pad_sketch.addRectangularArray(geometries, Vector(0, DIMS_STUD_WIDTH_INNER, 0), False,
                                                      self.brick_depth - 1, self.brick_width - 1, True)
 
         # perform the pad
@@ -628,10 +627,10 @@ class BodyRenderer(object):
         y3 = (DIMS_STUD_WIDTH_INNER / 2) + 1
         y4 = (DIMS_STUD_WIDTH_INNER / 2) + 2
 
-        geometries.append(Part.LineSegment(FreeCAD.Vector(x2, y1, 0), FreeCAD.Vector(x1, y2, 0)))
-        geometries.append(Part.LineSegment(FreeCAD.Vector(x1, y3, 0), FreeCAD.Vector(x2, y4, 0)))
-        geometries.append(Part.LineSegment(FreeCAD.Vector(x3, y4, 0), FreeCAD.Vector(x4, y3, 0)))
-        geometries.append(Part.LineSegment(FreeCAD.Vector(x4, y2, 0), FreeCAD.Vector(x3, y1, 0)))
+        geometries.append(Part.LineSegment(Vector(x2, y1, 0), Vector(x1, y2, 0)))
+        geometries.append(Part.LineSegment(Vector(x1, y3, 0), Vector(x2, y4, 0)))
+        geometries.append(Part.LineSegment(Vector(x3, y4, 0), Vector(x4, y3, 0)))
+        geometries.append(Part.LineSegment(Vector(x4, y2, 0), Vector(x3, y1, 0)))
 
         constraints.append(Sketcher.Constraint('Equal', 2, 4))
         constraints.append(Sketcher.Constraint('Equal', 3, 5))
@@ -653,13 +652,13 @@ class BodyRenderer(object):
         rad7 = -110 * math.pi / 180
         rad8 = -70 * math.pi / 180
         geometries.append(Part.ArcOfCircle(
-            Part.Circle(FreeCAD.Vector(4, 4, 0), FreeCAD.Vector(0, 0, 1), DIMS_TUBE_INNER_RADIUS), rad1, rad2))
+            Part.Circle(Vector(4, 4, 0), Vector(0, 0, 1), DIMS_TUBE_INNER_RADIUS), rad1, rad2))
         geometries.append(Part.ArcOfCircle(
-            Part.Circle(FreeCAD.Vector(4, 4, 0), FreeCAD.Vector(0, 0, 1), DIMS_TUBE_INNER_RADIUS), rad3, rad4))
+            Part.Circle(Vector(4, 4, 0), Vector(0, 0, 1), DIMS_TUBE_INNER_RADIUS), rad3, rad4))
         geometries.append(Part.ArcOfCircle(
-            Part.Circle(FreeCAD.Vector(4, 4, 0), FreeCAD.Vector(0, 0, 1), DIMS_TUBE_INNER_RADIUS), rad5, rad6))
+            Part.Circle(Vector(4, 4, 0), Vector(0, 0, 1), DIMS_TUBE_INNER_RADIUS), rad5, rad6))
         geometries.append(Part.ArcOfCircle(
-            Part.Circle(FreeCAD.Vector(4, 4, 0), FreeCAD.Vector(0, 0, 1), DIMS_TUBE_INNER_RADIUS), rad7, rad8))
+            Part.Circle(Vector(4, 4, 0), Vector(0, 0, 1), DIMS_TUBE_INNER_RADIUS), rad7, rad8))
 
         # All arcs centred
         constraints.append(Sketcher.Constraint('Coincident', 6, SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX, 0,
@@ -712,13 +711,13 @@ class BodyRenderer(object):
         if self.brick_width > 2 or self.brick_depth > 2:
             geometries = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
             if self.brick_width == 2 and self.brick_depth > 2:
-                tubes_pocket_sketch.addRectangularArray(geometries, FreeCAD.Vector(0, DIMS_STUD_WIDTH_INNER, 0), False,
+                tubes_pocket_sketch.addRectangularArray(geometries, Vector(0, DIMS_STUD_WIDTH_INNER, 0), False,
                                                         self.brick_depth - 1, self.brick_width - 1, True)
             elif self.brick_width > 2 and self.brick_depth == 2:
-                tubes_pocket_sketch.addRectangularArray(geometries, FreeCAD.Vector(DIMS_STUD_WIDTH_INNER, 0, 0), False,
+                tubes_pocket_sketch.addRectangularArray(geometries, Vector(DIMS_STUD_WIDTH_INNER, 0, 0), False,
                                                         self.brick_width - 1, self.brick_depth - 1, True)
             else:
-                tubes_pocket_sketch.addRectangularArray(geometries, FreeCAD.Vector(0, DIMS_STUD_WIDTH_INNER, 0), False,
+                tubes_pocket_sketch.addRectangularArray(geometries, Vector(0, DIMS_STUD_WIDTH_INNER, 0), False,
                                                         self.brick_depth - 1, self.brick_width - 1, True)
 
         # perform the pocket
@@ -827,10 +826,10 @@ class BodyRenderer(object):
         sticks_pad_sketch.addConstraint(constraints)
 
         if self.brick_width > 1:
-            sticks_pad_sketch.addRectangularArray([0], FreeCAD.Vector(DIMS_STUD_WIDTH_INNER, 0, 0), False,
+            sticks_pad_sketch.addRectangularArray([0], Vector(DIMS_STUD_WIDTH_INNER, 0, 0), False,
                                                   self.brick_width - 1, 1, True)
         else:
-            sticks_pad_sketch.addRectangularArray([0], FreeCAD.Vector(0, DIMS_STUD_WIDTH_INNER, 0), False,
+            sticks_pad_sketch.addRectangularArray([0], Vector(0, DIMS_STUD_WIDTH_INNER, 0), False,
                                                   self.brick_depth - 1, 1, True)
 
         # perform the pad
@@ -881,10 +880,10 @@ class BodyRenderer(object):
             sticks_pocket_sketch.addConstraint(constraints)
 
             if self.brick_width > 1:
-                sticks_pocket_sketch.addRectangularArray([0], FreeCAD.Vector(DIMS_STUD_WIDTH_INNER, 0, 0), False,
+                sticks_pocket_sketch.addRectangularArray([0], Vector(DIMS_STUD_WIDTH_INNER, 0, 0), False,
                                                          self.brick_width - 1, 1, True)
             if self.brick_depth > 1:
-                sticks_pocket_sketch.addRectangularArray([0], FreeCAD.Vector(0, DIMS_STUD_WIDTH_INNER, 0), False,
+                sticks_pocket_sketch.addRectangularArray([0], Vector(0, DIMS_STUD_WIDTH_INNER, 0), False,
                                                          self.brick_depth - 1, 1, True)
 
             # perform the pocket

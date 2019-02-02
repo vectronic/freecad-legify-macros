@@ -1,6 +1,6 @@
 # coding: UTF-8
 
-import FreeCAD
+from FreeCAD import Vector
 import math
 
 
@@ -63,48 +63,48 @@ ORIGIN_YZ_PLANE_INDEX = 5
 
 
 def xy_plane_top_left_vector():
-    return FreeCAD.Vector(-1, 1, 0)
+    return Vector(-1, 1, 0)
 
 
 def xy_plane_top_right_vector():
-    return FreeCAD.Vector(1, 1, 0)
+    return Vector(1, 1, 0)
 
 
 def xy_plane_bottom_right_vector():
-    return FreeCAD.Vector(1, -1, 0)
+    return Vector(1, -1, 0)
 
 
 def xy_plane_bottom_left_vector():
-    return FreeCAD.Vector(-1, -1, 0)
+    return Vector(-1, -1, 0)
 
 
 def xz_plane_top_left_vector():
-    return FreeCAD.Vector(-1, 0, 1)
+    return Vector(-1, 0, 1)
 
 
 def xz_plane_top_right_vector():
-    return FreeCAD.Vector(1, 0, 1)
+    return Vector(1, 0, 1)
 
 
 def xz_plane_bottom_right_vector():
-    return FreeCAD.Vector(1, 0, -1)
+    return Vector(1, 0, -1)
 
 
 def xz_plane_bottom_left_vector():
-    return FreeCAD.Vector(-1, 0, -1)
+    return Vector(-1, 0, -1)
 
 
 def yz_plane_top_left_vector():
-    return FreeCAD.Vector(0, -1, 1)
+    return Vector(0, -1, 1)
 
 
 def yz_plane_top_right_vector():
-    return FreeCAD.Vector(0, 1, 1)
+    return Vector(0, 1, 1)
 
 
 def yz_plane_bottom_right_vector():
-    return FreeCAD.Vector(0, 1, -1)
+    return Vector(0, 1, -1)
 
 
 def yz_plane_bottom_left_vector():
-    return FreeCAD.Vector(0, -1, -1)
+    return Vector(0, -1, -1)
