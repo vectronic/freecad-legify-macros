@@ -40,7 +40,7 @@ class SideStudsRenderer:
                                                SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX, offset))
         constraints.append(Sketcher.Constraint("DistanceY", SKETCH_GEOMETRY_ORIGIN_INDEX,
                                                SKETCH_GEOMETRY_VERTEX_START_INDEX, segment_count,
-                                               SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX, DIMS_PLATE_HEIGHT * 1.5))
+                                               SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX, DIMS_SIDE_FEATURE_CENTRE_HEIGHT))
 
         # add a smaller inner circle
         geometries.append(Part.Circle())
@@ -51,7 +51,7 @@ class SideStudsRenderer:
         constraints.append(Sketcher.Constraint("DistanceY", SKETCH_GEOMETRY_ORIGIN_INDEX,
                                                SKETCH_GEOMETRY_VERTEX_START_INDEX,
                                                segment_count + 1, SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX,
-                                               DIMS_PLATE_HEIGHT * 1.5))
+                                               DIMS_SIDE_FEATURE_CENTRE_HEIGHT))
 
     @staticmethod
     def _add_side_stud_inside_pocket_sketch(geometries, constraints, offset):
@@ -66,10 +66,12 @@ class SideStudsRenderer:
                                                SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX, offset))
         constraints.append(Sketcher.Constraint("DistanceY", SKETCH_GEOMETRY_ORIGIN_INDEX,
                                                SKETCH_GEOMETRY_VERTEX_START_INDEX, segment_count,
-                                               SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX, DIMS_PLATE_HEIGHT * 1.5))
+                                               SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX, DIMS_SIDE_FEATURE_CENTRE_HEIGHT))
 
     def _render_side_studs_outside(self, label, plane, count, inverted):
         Console.PrintMessage("render_side_studs_outside({0},{1})\n".format(label, count))
+
+        # side studs outside pad
 
         side_studs_outside_pad_sketch = self.brick.newObject("Sketcher::SketchObject",
                                                              label + "_side_studs_outside_pad_sketch")
@@ -85,8 +87,8 @@ class SideStudsRenderer:
         side_studs_outside_pad_sketch.addGeometry(geometries, False)
         side_studs_outside_pad_sketch.addConstraint(constraints)
 
-        # perform the pad
         side_studs_outside_pad = self.brick.newObject("PartDesign::Pad", label + "_side_studs_outside_pad")
+        side_studs_outside_pad.Type = PAD_TYPE_DIMENSION
         side_studs_outside_pad.Profile = side_studs_outside_pad_sketch
         side_studs_outside_pad.Length = DIMS_STUD_HEIGHT
         side_studs_outside_pad.Reversed = False if inverted else True
@@ -107,7 +109,8 @@ class SideStudsRenderer:
                     if n1.isEqual(n2, 1e-7):
                         face_names.append("Face" + repr(i + 1))
 
-        # fillet the studs
+        # side studs fillet
+
         # TODO: determine if the inner edge of open or hole studs should be filleted
         side_stud_fillets = self.brick.newObject("PartDesign::Fillet", label + "_side_stud_fillets")
         side_stud_fillets.Radius = DIMS_EDGE_FILLET
@@ -118,6 +121,8 @@ class SideStudsRenderer:
 
     def _render_side_studs_inside(self, label, plane, count, inverted):
         Console.PrintMessage("render_side_studs_inside({0},{1})\n".format(label, count))
+
+        # side studs pocket
 
         side_studs_inside_pocket_sketch = self.brick.newObject("Sketcher::SketchObject",
                                                                label + "_side_studs_inside_pocket_sketch")
@@ -133,8 +138,8 @@ class SideStudsRenderer:
         side_studs_inside_pocket_sketch.addGeometry(geometries, False)
         side_studs_inside_pocket_sketch.addConstraint(constraints)
 
-        # perform the pocket
         side_studs_inside_pocket = self.brick.newObject("PartDesign::Pocket", label + "_side_studs_inside_pocket")
+        side_studs_inside_pocket.Type = POCKET_TYPE_DIMENSION
         side_studs_inside_pocket.Profile = side_studs_inside_pocket_sketch
         side_studs_inside_pocket.Reversed = inverted
         side_studs_inside_pocket.Length = DIMS_SIDE_THICKNESS + DIMS_STUD_INSIDE_HOLE_TOP_OFFSET

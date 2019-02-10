@@ -47,6 +47,8 @@ class BrickContext:
         self.left_inside_datum_plane = None
         self.right_inside_datum_plane = None
 
+        self.xz_plane = None
+
         self.doc = None
         self.brick = None
 
@@ -263,20 +265,20 @@ class BrickRenderer:
 
         if style != HoleStyle.NONE and self.side_studs_style != SideStudStyle.NONE:
 
-            if self.side_studs_left or self.side_studs_right:
+            if self.side_studs_front or self.side_studs_back:
 
                 Console.PrintMessage("holes[\"style\"] set to HoleStyle.NONE as "
                                      "side_studs[\"style\"] != SideStudStyle.NONE and "
-                                     "side_studs[\"left\"] == True or side_studs[\"right\"] == True\n")
+                                     "side_studs[\"front\"] == True or side_studs[\"back\"] == True\n")
                 style = HoleStyle.NONE
 
         if style != HoleStyle.NONE and self.pins_style != PinStyle.NONE:
 
-            if self.pins_left or self.pins_right:
+            if self.pins_front or self.pins_back:
 
                 Console.PrintMessage("holes[\"style\"] set to HoleStyle.NONE as "
                                      "pins[\"style\"] != PinStyle.NONE and "
-                                     "pins[\"left\"] == True or pins[\"right\"] == True\n")
+                                     "pins[\"front\"] == True or pins[\"back\"] == True\n")
                 style = HoleStyle.NONE
 
         offset = bool(holes["offset"])
@@ -403,6 +405,8 @@ class BrickRenderer:
                    (DIMS_HALF_STUD_WIDTH_OUTER - DIMS_SIDE_THICKNESS)), Rotation(0, 0, 0))
         right_inside_datum_plane.ViewObject.Visibility = False
         context.right_inside_datum_plane = right_inside_datum_plane
+
+        context.xz_plane = context.doc.XZ_Plane
 
     def render(self):
 

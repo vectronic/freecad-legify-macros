@@ -68,6 +68,8 @@ class TopStudsRenderer:
         Console.PrintMessage("render_top_studs_outside({0},{1},{2})\n".format(
             initial_width_offset, initial_depth_offset, style))
 
+        # top studs outside pad
+
         top_studs_outside_pad_sketch = self.brick.newObject("Sketcher::SketchObject", "top_studs_outside_pad_sketch")
         top_studs_outside_pad_sketch.Support = (self.top_datum_plane, '')
         top_studs_outside_pad_sketch.MapMode = 'FlatFace'
@@ -85,8 +87,8 @@ class TopStudsRenderer:
         top_studs_outside_pad_sketch.addGeometry(geometries, False)
         top_studs_outside_pad_sketch.addConstraint(constraints)
 
-        # perform the pad
         top_studs_outside_pad = self.brick.newObject("PartDesign::Pad", "top_studs_outside_pad")
+        top_studs_outside_pad.Type = PAD_TYPE_DIMENSION
         top_studs_outside_pad.Profile = top_studs_outside_pad_sketch
         top_studs_outside_pad.Length = DIMS_STUD_HEIGHT
 
@@ -103,7 +105,8 @@ class TopStudsRenderer:
                 if v.Point.z == xy_plane_z + DIMS_STUD_HEIGHT:
                     edge_names.append("Edge" + repr(i + 1))
 
-        # fillet the studs
+        # top studs fillet
+
         # TODO: check if inner edge of open stud should be filleted (currently it is)
         top_stud_fillets = self.brick.newObject("PartDesign::Fillet", "top_stud_fillets")
         top_stud_fillets.Radius = DIMS_EDGE_FILLET
@@ -114,6 +117,8 @@ class TopStudsRenderer:
 
     def _render_top_studs_inside(self, initial_width_offset, initial_depth_offset):
         Console.PrintMessage("render_top_studs_inside({0},{1})\n".format(initial_width_offset, initial_depth_offset))
+
+        # top studs inside pocket
 
         top_studs_inside_pocket_sketch = self.brick\
             .newObject("Sketcher::SketchObject", "top_studs_inside_pocket_sketch")
@@ -132,8 +137,8 @@ class TopStudsRenderer:
         top_studs_inside_pocket_sketch.addGeometry(geometries, False)
         top_studs_inside_pocket_sketch.addConstraint(constraints)
 
-        # perform the pocket
         top_studs_inside_pocket = self.brick.newObject("PartDesign::Pocket", "top_studs_inside_pocket")
+        top_studs_inside_pocket.Type = POCKET_TYPE_DIMENSION
         top_studs_inside_pocket.Profile = top_studs_inside_pocket_sketch
         top_studs_inside_pocket.Reversed = True
         top_studs_inside_pocket.Length = DIMS_TOP_THICKNESS + DIMS_STUD_INSIDE_HOLE_TOP_OFFSET

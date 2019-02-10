@@ -1,6 +1,6 @@
 # coding: UTF-8
 
-from FreeCAD import Console, Vector
+from FreeCAD import Console, Vector, Placement, Rotation
 import Part
 import Sketcher
 from Legify.Common import *
@@ -215,6 +215,8 @@ class BodyRenderer(object):
     def _render_body_pad_and_fillets(self):
         Console.PrintMessage("_render_body_pad_and_edge_fillets()\n")
 
+        # body pad
+
         body_pad_sketch = self.brick.newObject("Sketcher::SketchObject", "body_pad_sketch")
 
         body_pad_sketch.addGeometry([
@@ -256,15 +258,15 @@ class BodyRenderer(object):
                                 (self.brick_depth - 1) * DIMS_STUD_WIDTH_INNER + (2 * DIMS_HALF_STUD_WIDTH_OUTER))
         ])
 
-        # perform the pad
         body_pad = self.brick.newObject("PartDesign::Pad", "body_pad")
+        body_pad.Type = PAD_TYPE_UP_TO_FACE
         body_pad.Profile = body_pad_sketch
-        body_pad.Type = 3  # UpToFace
         body_pad.UpToFace = (self.top_datum_plane, [""])
 
         self.doc.recompute()
 
-        # fillets on all edges existing at this stage
+        # body edge fillets
+
         edge_names = []
         for i in range(0, len(body_pad.Shape.Edges)):
             edge_names.append("Edge" + repr(i + 1))
@@ -280,6 +282,8 @@ class BodyRenderer(object):
 
     def _render_body_pocket(self):
         Console.PrintMessage("_render_body_pocket()\n")
+
+        # body pocket
 
         body_pocket_sketch = self.brick.newObject("Sketcher::SketchObject", "body_pocket_sketch")
 
@@ -445,10 +449,9 @@ class BodyRenderer(object):
         body_pocket_sketch.addGeometry(geometries, False)
         body_pocket_sketch.addConstraint(constraints)
 
-        # perform the pocket
         body_pocket = self.brick.newObject("PartDesign::Pocket", "body_pocket")
+        body_pocket.Type = POCKET_TYPE_UP_TO_FACE
         body_pocket.Profile = body_pocket_sketch
-        body_pocket.Type = 3
         body_pocket.UpToFace = (self.top_inside_datum_plane, [""])
         body_pocket.Reversed = True
 
@@ -458,7 +461,12 @@ class BodyRenderer(object):
     def _render_tube_ribs(self):
         Console.PrintMessage("_render_tube_ribs()\n")
 
+        # TODO: determine a replacement for tube ribs if technic holes exist
+
         if self.brick_width > 2:
+
+            # front tube rubs pad
+
             front_tube_ribs_sketch = self.brick.newObject("Sketcher::SketchObject", "front_tube_ribs_sketch")
             front_tube_ribs_sketch.Support = (self.front_inside_datum_plane, '')
             front_tube_ribs_sketch.MapMode = 'FlatFace'
@@ -476,9 +484,9 @@ class BodyRenderer(object):
                 for i in range(2, self.brick_width, 2):
                     indices.append(i)
             else:
-                for i in range(((self.brick_width - 1) / 2), 0, -2):
+                for i in range(((self.brick_width - 1) // 2), 0, -2):
                     indices.append(i)
-                for i in range(((self.brick_width - 1) / 2) + 1, self.brick_width, 2):
+                for i in range(((self.brick_width - 1) // 2) + 1, self.brick_width, 2):
                     indices.append(i)
             for i in indices:
                 self._add_rib_sketch(geometries, constraints, i,
@@ -489,22 +497,18 @@ class BodyRenderer(object):
             front_tube_ribs_sketch.addGeometry(geometries, False)
             front_tube_ribs_sketch.addConstraint(constraints)
 
-            # perform the pad
             front_tube_ribs_pad = self.brick.newObject("PartDesign::Pad", "front_tube_ribs_pad")
+            front_tube_ribs_pad.Type = PAD_TYPE_TO_LAST
             front_tube_ribs_pad.Profile = front_tube_ribs_sketch
-            # Need to specify Dimension instead of UpToFace because of the following issue:
-            # https://freecadweb.org/tracker/view.php?id=3177
-            # https://forum.freecadweb.org/viewtopic.php?f=8&t=24238
-            # front_tube_ribs_pad.Type = 3  # UpToFace
-            # front_tube_ribs_pad.UpToFace = (self.back_inside_datum_plane, [""])
             front_tube_ribs_pad.Reversed = 1
-            front_tube_ribs_pad.Length = (self.brick_depth - 1) * DIMS_STUD_WIDTH_INNER + \
-                                         (2 * DIMS_HALF_STUD_WIDTH_OUTER) - (2 * DIMS_SIDE_THICKNESS)
 
             self.doc.recompute()
             front_tube_ribs_sketch.ViewObject.Visibility = False
 
         if self.brick_depth > 2:
+
+            # side tube rubs pad
+
             side_tube_ribs_sketch = self.brick.newObject("Sketcher::SketchObject", "side_tube_ribs_sketch")
             side_tube_ribs_sketch.Support = (self.left_inside_datum_plane, '')
             side_tube_ribs_sketch.MapMode = 'FlatFace'
@@ -522,9 +526,9 @@ class BodyRenderer(object):
                 for i in range(2, self.brick_depth, 2):
                     indices.append(i)
             else:
-                for i in range(((self.brick_depth - 1) / 2), 0, -2):
+                for i in range(((self.brick_depth - 1) // 2), 0, -2):
                         indices.append(i)
-                for i in range(((self.brick_depth - 1) / 2) + 1, self.brick_depth, 2):
+                for i in range(((self.brick_depth - 1) // 2) + 1, self.brick_depth, 2):
                     indices.append(i)
             for i in indices:
                 self._add_rib_sketch(geometries, constraints, i,
@@ -535,16 +539,9 @@ class BodyRenderer(object):
             side_tube_ribs_sketch.addGeometry(geometries, False)
             side_tube_ribs_sketch.addConstraint(constraints)
 
-            # perform the pad
             side_tube_ribs_pad = self.brick.newObject("PartDesign::Pad", "side_tube_ribs_pad")
+            side_tube_ribs_pad.Type = PAD_TYPE_TO_LAST
             side_tube_ribs_pad.Profile = side_tube_ribs_sketch
-            # Need to specify Dimension instead of UpToFace because of the following issue:
-            # https://freecadweb.org/tracker/view.php?id=3177
-            # https://forum.freecadweb.org/viewtopic.php?f=8&t=24238
-            # side_tube_ribs_pad.Type = 3  # UpToFace
-            # side_tube_ribs_pad.UpToFace = (self.right_inside_datum_plane, [""])
-            side_tube_ribs_pad.Length = (self.brick_width - 1) * DIMS_STUD_WIDTH_INNER + \
-                                        (2 * DIMS_HALF_STUD_WIDTH_OUTER) - (2 * DIMS_SIDE_THICKNESS)
 
             self.doc.recompute()
             side_tube_ribs_sketch.ViewObject.Visibility = False
@@ -555,8 +552,9 @@ class BodyRenderer(object):
         # tubes pad
 
         tubes_pad_sketch = self.brick.newObject("Sketcher::SketchObject", "tubes_pad_sketch")
-        tubes_pad_sketch.Support = (self.top_inside_datum_plane, '')
-        tubes_pad_sketch.MapMode = 'FlatFace'
+        tubes_pad_sketch.MapMode = 'ObjectXY'
+        tubes_pad_sketch.Placement = Placement(Vector(0, 0, DIMS_STICK_AND_TUBE_BOTTOM_INSET),
+                                               Rotation(Vector(0, 0, 1), 0))
 
         geometries = []
         constraints = []
@@ -580,19 +578,9 @@ class BodyRenderer(object):
                 tubes_pad_sketch.addRectangularArray(geometries, Vector(0, DIMS_STUD_WIDTH_INNER, 0), False,
                                                      self.brick_depth - 1, self.brick_width - 1, True)
 
-        # perform the pad
         tubes_pad = self.brick.newObject("PartDesign::Pad", "tubes_pad")
+        tubes_pad.Type = PAD_TYPE_TO_LAST
         tubes_pad.Profile = tubes_pad_sketch
-        tubes_pad.Reversed = 1
-
-        # Need to specify Dimension instead of UpToFace because of the following issue:
-        # https://freecadweb.org/tracker/view.php?id=3177
-        # https://forum.freecadweb.org/viewtopic.php?f=8&t=24238
-        # tubes_pad.Type = 3
-        # tubes_pad.UpToFace = (self.XY_Plane, [""])
-        # tubes_pad.Offset = -1 * DIMS_STICK_AND_TUBE_BOTTOM_OFFSET
-        tubes_pad.Length = ((self.brick_height * DIMS_PLATE_HEIGHT)
-                            - DIMS_TOP_THICKNESS - DIMS_STICK_AND_TUBE_BOTTOM_OFFSET)
 
         self.doc.recompute()
         tubes_pad_sketch.ViewObject.Visibility = False
@@ -720,16 +708,17 @@ class BodyRenderer(object):
                 tubes_pocket_sketch.addRectangularArray(geometries, Vector(0, DIMS_STUD_WIDTH_INNER, 0), False,
                                                         self.brick_depth - 1, self.brick_width - 1, True)
 
-        # perform the pocket
         tubes_pocket = self.brick.newObject("PartDesign::Pocket", "tubes_pocket")
+        tubes_pocket.Type = POCKET_TYPE_THROUGH_ALL
         tubes_pocket.Profile = tubes_pocket_sketch
-        tubes_pocket.Type = 1  # Through All
 
         self.doc.recompute()
         tubes_pocket_sketch.ViewObject.Visibility = False
 
     def _render_stick_ribs(self):
         Console.PrintMessage("_render_stick_ribs()\n")
+
+        # stick ribs pad
 
         stick_ribs_sketch = self.brick.newObject("Sketcher::SketchObject", "stick_ribs_sketch")
         if self.brick_width > 1:
@@ -762,9 +751,9 @@ class BodyRenderer(object):
                 for i in range(2, studs, 2):
                     indices.append(i)
             else:
-                for i in range(((studs - 1) / 2), 0, -2):
+                for i in range(((studs - 1) // 2), 0, -2):
                     indices.append(i)
-                for i in range(((studs - 1) / 2) + 1, studs, 2):
+                for i in range(((studs - 1) // 2) + 1, studs, 2):
                     indices.append(i)
 
         for i in indices:
@@ -776,20 +765,11 @@ class BodyRenderer(object):
         stick_ribs_sketch.addGeometry(geometries, False)
         stick_ribs_sketch.addConstraint(constraints)
 
-        # perform the pad
         stick_ribs_pad = self.brick.newObject("PartDesign::Pad", "stick_ribs_pad")
+        stick_ribs_pad.Type = PAD_TYPE_TO_LAST
         stick_ribs_pad.Profile = stick_ribs_sketch
         if self.brick_width > 1:
             stick_ribs_pad.Reversed = 1
-        # Need to specify Dimension instead of UpToFace because of the following issue:
-        # https://freecadweb.org/tracker/view.php?id=3177
-        # https://forum.freecadweb.org/viewtopic.php?f=8&t=24238
-        # stick_ribs_pad.Type = 3  # UpToFace
-        # if self.brick_width > 1:
-        #     stick_ribs_pad.UpToFace = (self.back_inside_datum_plane, [""])
-        # else:
-        #     stick_ribs_pad.UpToFace = (self.right_inside_datum_plane, [""])
-        stick_ribs_pad.Length = (2 * DIMS_HALF_STUD_WIDTH_OUTER) - (2 * DIMS_SIDE_THICKNESS)
 
         self.doc.recompute()
         stick_ribs_sketch.ViewObject.Visibility = False
@@ -797,9 +777,12 @@ class BodyRenderer(object):
     def _render_sticks(self, hollow_sticks):
         Console.PrintMessage("_render_sticks({0})\n".format(hollow_sticks))
 
+        # sticks pad
+
         sticks_pad_sketch = self.brick.newObject("Sketcher::SketchObject", "sticks_pad_sketch")
-        sticks_pad_sketch.Support = (self.top_inside_datum_plane, '')
-        sticks_pad_sketch.MapMode = 'FlatFace'
+        sticks_pad_sketch.MapMode = 'ObjectXY'
+        sticks_pad_sketch.Placement = Placement(Vector(0, 0, DIMS_STICK_AND_TUBE_BOTTOM_INSET),
+                                                Rotation(Vector(0, 0, 1), 0))
 
         geometries = []
         constraints = []
@@ -832,23 +815,17 @@ class BodyRenderer(object):
             sticks_pad_sketch.addRectangularArray([0], Vector(0, DIMS_STUD_WIDTH_INNER, 0), False,
                                                   self.brick_depth - 1, 1, True)
 
-        # perform the pad
         sticks_pad = self.brick.newObject("PartDesign::Pad", "sticks_pad")
+        sticks_pad.Type = PAD_TYPE_TO_LAST
         sticks_pad.Profile = sticks_pad_sketch
-        sticks_pad.Reversed = 1
-        # Need to specify Dimension instead of UpToFace because of the following issue:
-        # https://freecadweb.org/tracker/view.php?id=3177
-        # https://forum.freecadweb.org/viewtopic.php?f=8&t=24238
-        # sticks_pad.Type = 3
-        # sticks_pad.UpToFace = (self.XY_Plane, [""])
-        # sticks_pad.Offset = -1 * DIMS_STICK_AND_TUBE_BOTTOM_OFFSET
-        sticks_pad.Length = ((self.brick_height * DIMS_PLATE_HEIGHT)
-                             - DIMS_TOP_THICKNESS - DIMS_STICK_AND_TUBE_BOTTOM_OFFSET)
 
         self.doc.recompute()
         sticks_pad_sketch.ViewObject.Visibility = False
 
         if hollow_sticks:
+
+            # sticks pocket
+
             sticks_pocket_sketch = self.brick.newObject("Sketcher::SketchObject", "sticks_pocket_sketch")
             sticks_pocket_sketch.Support = (self.top_inside_datum_plane, '')
             sticks_pocket_sketch.MapMode = 'FlatFace'
@@ -886,10 +863,9 @@ class BodyRenderer(object):
                 sticks_pocket_sketch.addRectangularArray([0], Vector(0, DIMS_STUD_WIDTH_INNER, 0), False,
                                                          self.brick_depth - 1, 1, True)
 
-            # perform the pocket
             sticks_pocket = self.brick.newObject("PartDesign::Pocket", "sticks_pocket")
+            sticks_pocket.Type = POCKET_TYPE_THROUGH_ALL
             sticks_pocket.Profile = sticks_pocket_sketch
-            sticks_pocket.Type = 1  # Through All
 
             self.doc.recompute()
             sticks_pocket_sketch.ViewObject.Visibility = False
@@ -899,8 +875,7 @@ class BodyRenderer(object):
 
         tubes = self.brick_depth > 1 and self.brick_width > 1
         tube_ribs = tubes and self.brick_height > 1 and (self.brick_depth > 2 or self.brick_width > 2)
-        sticks = not tubes and (self.brick_depth > 1 or self.brick_width > 1) and not (
-                    self.hole_style == HoleStyle.HOLE and self.holes_offset)
+        sticks = not tubes and (self.brick_depth > 1 or self.brick_width > 1)
         stick_ribs = sticks and self.brick_height > 1 and not self.hole_style == HoleStyle.HOLE
         hollow_sticks = sticks and self.brick_height == 1
 
