@@ -145,6 +145,8 @@ class HolesRenderer:
             holes_counterbore_mirror = self.brick.newObject("PartDesign::Mirrored", "Mirrored")
             holes_counterbore_mirror.Originals = [holes_counterbore_pocket]
             holes_counterbore_mirror.MirrorPlane = (self.xz_plane, [""])
+            self.brick.Tip = holes_counterbore_mirror
+
             self.doc.recompute()
 
             # TODO: filleting required?
