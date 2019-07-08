@@ -40,9 +40,10 @@ class SideStudsRenderer:
                                                SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX, offset))
         constraints.append(Sketcher.Constraint("DistanceY", SKETCH_GEOMETRY_ORIGIN_INDEX,
                                                SKETCH_GEOMETRY_VERTEX_START_INDEX, segment_count,
-                                               SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX, DIMS_SIDE_FEATURE_CENTRE_HEIGHT))
+                                               SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX, DIMS_SIDE_STUD_CENTRE_HEIGHT))
 
         # add a smaller inner circle
+        # TODO: add four flat sides to open stud
         geometries.append(Part.Circle())
         constraints.append(Sketcher.Constraint("Radius", segment_count + 1, DIMS_STUD_INNER_RADIUS))
         constraints.append(Sketcher.Constraint("DistanceX", SKETCH_GEOMETRY_ORIGIN_INDEX,
@@ -51,7 +52,7 @@ class SideStudsRenderer:
         constraints.append(Sketcher.Constraint("DistanceY", SKETCH_GEOMETRY_ORIGIN_INDEX,
                                                SKETCH_GEOMETRY_VERTEX_START_INDEX,
                                                segment_count + 1, SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX,
-                                               DIMS_SIDE_FEATURE_CENTRE_HEIGHT))
+                                               DIMS_SIDE_STUD_CENTRE_HEIGHT))
 
     @staticmethod
     def _add_side_stud_inside_pocket_sketch(geometries, constraints, offset):
@@ -66,7 +67,7 @@ class SideStudsRenderer:
                                                SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX, offset))
         constraints.append(Sketcher.Constraint("DistanceY", SKETCH_GEOMETRY_ORIGIN_INDEX,
                                                SKETCH_GEOMETRY_VERTEX_START_INDEX, segment_count,
-                                               SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX, DIMS_SIDE_FEATURE_CENTRE_HEIGHT))
+                                               SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX, DIMS_SIDE_STUD_CENTRE_HEIGHT))
 
     def _render_side_studs_outside(self, label, plane, count, inverted):
         Console.PrintMessage("render_side_studs_outside({0},{1})\n".format(label, count))
@@ -82,7 +83,7 @@ class SideStudsRenderer:
         constraints = []
 
         for i in range(0, count):
-            self._add_side_stud_outer_pad_sketch(geometries, constraints, i * DIMS_STUD_WIDTH_INNER)
+            self._add_side_stud_outer_pad_sketch(geometries, constraints, i * DIMS_STUD_SPACING_INNER)
 
         side_studs_outside_pad_sketch.addGeometry(geometries, False)
         side_studs_outside_pad_sketch.addConstraint(constraints)
@@ -96,25 +97,22 @@ class SideStudsRenderer:
         self.doc.recompute()
 
         # determine the stud outer edges
+        edge_names = get_circle_edge_names(plane, inverted, side_studs_outside_pad, DIMS_STUD_OUTER_RADIUS)
 
-        face_names = []
-        for i in range(0, len(side_studs_outside_pad.Shape.Faces)):
-            f = side_studs_outside_pad.Shape.Faces[i]
-            # desired faces have two edges, both circles
-            if len(f.Edges) == 2:
-                if len(f.Edges[0].Vertexes) == 1 and len(f.Edges[1].Vertexes) == 1:
-                    n1 = f.normalAt(0, 0)
-                    n2 = plane.Shape.normalAt(0, 0)
-                    n2 = n2 if inverted else n2.negative()
-                    if n1.isEqual(n2, 1e-7):
-                        face_names.append("Face" + repr(i + 1))
+        # side studs outer fillet
+        side_stud_outer_fillets = self.brick.newObject("PartDesign::Fillet", label + "_side_stud_outer_fillets")
+        side_stud_outer_fillets.Radius = DIMS_STUD_FILLET
+        side_stud_outer_fillets.Base = (side_studs_outside_pad, edge_names)
 
-        # side studs fillet
+        self.doc.recompute()
 
-        # TODO: determine if the inner edge of open or hole studs should be filleted
-        side_stud_fillets = self.brick.newObject("PartDesign::Fillet", label + "_side_stud_fillets")
-        side_stud_fillets.Radius = DIMS_EDGE_FILLET
-        side_stud_fillets.Base = (side_studs_outside_pad, face_names)
+        # determine the stud inner edges
+        edge_names = get_circle_edge_names(plane, inverted, side_stud_outer_fillets, DIMS_STUD_INNER_RADIUS)
+
+        # side studs inner fillet
+        side_stud_inner_fillets = self.brick.newObject("PartDesign::Fillet", label + "_side_stud_inner_fillets")
+        side_stud_inner_fillets.Radius = DIMS_EDGE_FILLET
+        side_stud_inner_fillets.Base = (side_stud_outer_fillets, edge_names)
 
         self.doc.recompute()
         side_studs_outside_pad_sketch.ViewObject.Visibility = False
@@ -133,7 +131,7 @@ class SideStudsRenderer:
         constraints = []
 
         for i in range(0, count):
-            self._add_side_stud_inside_pocket_sketch(geometries, constraints, i * DIMS_STUD_WIDTH_INNER)
+            self._add_side_stud_inside_pocket_sketch(geometries, constraints, i * DIMS_STUD_SPACING_INNER)
 
         side_studs_inside_pocket_sketch.addGeometry(geometries, False)
         side_studs_inside_pocket_sketch.addConstraint(constraints)

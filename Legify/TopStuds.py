@@ -39,6 +39,8 @@ class TopStudsRenderer:
                                                SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX, depth_offset))
 
         if style == TopStudStyle.OPEN:
+
+            # TODO: add four flat sides to open stud
             # add a smaller inner circle if open studs
             geometries.append(Part.Circle())
             constraints.append(Sketcher.Constraint("Radius", segment_count + 1, DIMS_STUD_INNER_RADIUS))
@@ -80,8 +82,8 @@ class TopStudsRenderer:
         for i in range(0, self.width_count):
             for j in range(0, self.depth_count):
                 self._add_top_stud_outer_pad_sketch(geometries, constraints,
-                                                    initial_width_offset + i * DIMS_STUD_WIDTH_INNER,
-                                                    initial_depth_offset + j * DIMS_STUD_WIDTH_INNER,
+                                                    initial_width_offset + i * DIMS_STUD_SPACING_INNER,
+                                                    initial_depth_offset + j * DIMS_STUD_SPACING_INNER,
                                                     style)
 
         top_studs_outside_pad_sketch.addGeometry(geometries, False)
@@ -94,23 +96,26 @@ class TopStudsRenderer:
 
         self.doc.recompute()
 
-        # determine the stud top edges
-        xy_plane_z = self.top_datum_plane.Placement.Base.z
-        edge_names = []
-        for i in range(0, len(top_studs_outside_pad.Shape.Edges)):
-            e = top_studs_outside_pad.Shape.Edges[i]
-            # circles have only one vertex
-            if len(e.Vertexes) == 1:
-                v = e.Vertexes[0]
-                if v.Point.z == xy_plane_z + DIMS_STUD_HEIGHT:
-                    edge_names.append("Edge" + repr(i + 1))
+        # determine the stud outer edges
+        edge_names = get_circle_edge_names(self.top_datum_plane, True, top_studs_outside_pad, DIMS_STUD_OUTER_RADIUS)
 
-        # top studs fillet
+        # top studs outer edge fillet
+        top_stud_outer_fillets = self.brick.newObject("PartDesign::Fillet", "top_stud_outer_fillets")
+        top_stud_outer_fillets.Radius = DIMS_STUD_FILLET
+        top_stud_outer_fillets.Base = (top_studs_outside_pad, edge_names)
 
-        # TODO: check if inner edge of open stud should be filleted (currently it is)
-        top_stud_fillets = self.brick.newObject("PartDesign::Fillet", "top_stud_fillets")
-        top_stud_fillets.Radius = DIMS_EDGE_FILLET
-        top_stud_fillets.Base = (top_studs_outside_pad, edge_names)
+        self.doc.recompute()
+
+        if style == TopStudStyle.OPEN:
+
+            # determine the stud inner edges
+            edge_names = get_circle_edge_names(self.top_datum_plane, True, top_stud_outer_fillets,
+                                               DIMS_STUD_INNER_RADIUS)
+
+            # top studs inner edge fillet
+            top_stud_inner_fillets = self.brick.newObject("PartDesign::Fillet", "top_stud_inner_fillets")
+            top_stud_inner_fillets.Radius = DIMS_EDGE_FILLET
+            top_stud_inner_fillets.Base = (top_stud_outer_fillets, edge_names)
 
         self.doc.recompute()
         top_studs_outside_pad_sketch.ViewObject.Visibility = False
@@ -131,8 +136,8 @@ class TopStudsRenderer:
         for i in range(0, self.width_count):
             for j in range(0, self.depth_count):
                 self._add_top_stud_inside_pocket_sketch(geometries, constraints,
-                                                        initial_width_offset + i * DIMS_STUD_WIDTH_INNER,
-                                                        initial_depth_offset + j * DIMS_STUD_WIDTH_INNER)
+                                                        initial_width_offset + i * DIMS_STUD_SPACING_INNER,
+                                                        initial_depth_offset + j * DIMS_STUD_SPACING_INNER)
 
         top_studs_inside_pocket_sketch.addGeometry(geometries, False)
         top_studs_inside_pocket_sketch.addConstraint(constraints)
@@ -161,8 +166,8 @@ class TopStudsRenderer:
         self.top_datum_plane = context.top_datum_plane
         self.top_inside_datum_plane = context.top_inside_datum_plane
 
-        initial_width_offset = (self.width - self.width_count) * DIMS_STUD_WIDTH_INNER / 2
-        initial_depth_offset = (self.depth - self.depth_count) * DIMS_STUD_WIDTH_INNER / 2
+        initial_width_offset = (self.width - self.width_count) * DIMS_STUD_SPACING_INNER / 2
+        initial_depth_offset = (self.depth - self.depth_count) * DIMS_STUD_SPACING_INNER / 2
 
         self._render_top_studs_outside(initial_width_offset, initial_depth_offset, self.style)
 

@@ -35,7 +35,7 @@ class HolesRenderer:
                                                SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX, offset))
         constraints.append(Sketcher.Constraint("DistanceY", SKETCH_GEOMETRY_ORIGIN_INDEX,
                                                SKETCH_GEOMETRY_VERTEX_START_INDEX, segment_count,
-                                               SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX, DIMS_SIDE_FEATURE_CENTRE_HEIGHT))
+                                               SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX, DIMS_TECHNIC_HOLE_CENTRE_HEIGHT))
 
     @staticmethod
     def _add_axle_hole_sketch(geometries, constraints, offset):
@@ -57,7 +57,7 @@ class HolesRenderer:
         Console.PrintMessage("render_holes()\n")
 
         hole_count = self.width if self.offset else (self.width - 1)
-        hole_offset = 0 if self.offset else (DIMS_STUD_WIDTH_INNER / 2)
+        hole_offset = 0 if self.offset else (DIMS_STUD_SPACING_INNER / 2)
 
         # holes pad
 
@@ -72,8 +72,8 @@ class HolesRenderer:
         constraints = []
 
         for i in range(0, hole_count):
-            self._add_round_hole_sketch(geometries, constraints, hole_offset + (i * DIMS_STUD_WIDTH_INNER),
-                                        DIMS_HOLE_OUTER_RADIUS)
+            self._add_round_hole_sketch(geometries, constraints, hole_offset + (i * DIMS_STUD_SPACING_INNER),
+                                        DIMS_TECHNIC_HOLE_OUTER_RADIUS)
 
         holes_pad_sketch.addGeometry(geometries, False)
         holes_pad_sketch.addConstraint(constraints)
@@ -97,15 +97,13 @@ class HolesRenderer:
 
         for i in range(0, hole_count):
             if self.style == HoleStyle.HOLE:
-                self._add_round_hole_sketch(geometries, constraints, hole_offset + (i * DIMS_STUD_WIDTH_INNER),
-                                            DIMS_HOLE_INNER_RADIUS)
+                self._add_round_hole_sketch(geometries, constraints, hole_offset + (i * DIMS_STUD_SPACING_INNER),
+                                            DIMS_TECHNIC_HOLE_INNER_RADIUS)
             else:
-                self._add_axle_hole_sketch(geometries, constraints, hole_offset + (i * DIMS_STUD_WIDTH_INNER))
+                self._add_axle_hole_sketch(geometries, constraints, hole_offset + (i * DIMS_STUD_SPACING_INNER))
 
         holes_pocket_sketch.addGeometry(geometries, False)
         holes_pocket_sketch.addConstraint(constraints)
-
-        # TODO: filleting required?
 
         holes_pocket = self.brick.newObject("PartDesign::Pocket", "holes_pocket")
         holes_pocket.Type = POCKET_TYPE_THROUGH_ALL
@@ -127,8 +125,8 @@ class HolesRenderer:
             constraints = []
 
             for i in range(0, hole_count):
-                self._add_round_hole_sketch(geometries, constraints, hole_offset + (i * DIMS_STUD_WIDTH_INNER),
-                                            DIMS_HOLE_COUNTERBORE_RADIUS)
+                self._add_round_hole_sketch(geometries, constraints, hole_offset + (i * DIMS_STUD_SPACING_INNER),
+                                            DIMS_TECHNIC_HOLE_COUNTERBORE_RADIUS)
 
             holes_counterbore_pocket_sketch.addGeometry(geometries, False)
             holes_counterbore_pocket_sketch.addConstraint(constraints)
@@ -136,7 +134,7 @@ class HolesRenderer:
             holes_counterbore_pocket = self.brick.newObject("PartDesign::Pocket", "holes_counterbore_pocket")
             holes_counterbore_pocket.Type = POCKET_TYPE_DIMENSION
             holes_counterbore_pocket.Profile = holes_counterbore_pocket_sketch
-            holes_counterbore_pocket.Length = DIMS_HOLE_COUNTERBORE_DEPTH
+            holes_counterbore_pocket.Length = DIMS_TECHNIC_HOLE_COUNTERBORE_DEPTH
 
             self.doc.recompute()
 
@@ -149,8 +147,30 @@ class HolesRenderer:
 
             self.doc.recompute()
 
-            # TODO: filleting required?
+            # TODO: fillet the outer hole of counterbore
+            # NOTE: looks like no filleting required on lower hole of counterbore
 
+            # determine the stud inner edges
+
+            # face_names = []
+            # for i in range(0, len(side_studs_outside_pad.Shape.Faces)):
+            #     f = side_studs_outside_pad.Shape.Faces[i]
+            #     # desired faces have two edges, both circles
+            #     if len(f.Edges) == 2:
+            #         if len(f.Edges[0].Vertexes) == 1 and len(f.Edges[1].Vertexes) == 1:
+            #             n1 = f.normalAt(0, 0)
+            #             n2 = plane.Shape.normalAt(0, 0)
+            #             n2 = n2 if inverted else n2.negative()
+            #             # TODO: filter inner edge
+            #             if n1.isEqual(n2, 1e-7):
+            #                 face_names.append("Face" + repr(i + 1))
+            #
+            # # side studs inner fillet
+            # side_stud_inner_fillets = self.brick.newObject("PartDesign::Fillet", label + "_side_stud_inner_fillets")
+            # side_stud_inner_fillets.Radius = DIMS_EDGE_FILLET
+            # side_stud_inner_fillets.Base = (side_studs_outside_pad, face_names)
+            #
+            # self.doc.recompute()
             holes_counterbore_pocket_sketch.ViewObject.Visibility = False
 
     def render(self, context):
