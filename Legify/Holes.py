@@ -87,7 +87,7 @@ class HolesRenderer:
         holes_pad_sketch = self.brick.newObject("Sketcher::SketchObject", "holes_pad_sketch")
         holes_pad_sketch.Support = (self.front_datum_plane, '')
         holes_pad_sketch.MapMode = 'FlatFace'
-        holes_pad_sketch.AttachmentOffset = Placement(Vector(0, 0, -1 * DIMS_SIDE_THICKNESS), Rotation(0, 0, 0))
+        holes_pad_sketch.AttachmentOffset = Placement(Vector(0, 0, -1 * DIMS_RIBBED_SIDE_THICKNESS), Rotation(0, 0, 0))
 
         geometries = []
         constraints = []

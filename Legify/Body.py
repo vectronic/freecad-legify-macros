@@ -274,10 +274,6 @@ class BodyRenderer(object):
 
         body_pocket_sketch = self.brick.newObject("Sketcher::SketchObject", "body_pocket_sketch")
 
-        # TODO: support side rib variation in modern 2x1 tile and 2 x 1 technic brick with 2 non-offset holes
-        # TODO: don't render pins if technic holes exist and are offset
-        # TODO: determine a replacement for internal ribs if side studs exist with holes
-        # TODO: if not ribs, side thickness differs
         side_ribs = self.height == 3 and self.depth > 1 and self.width > 1
 
         geometries = []
@@ -288,7 +284,7 @@ class BodyRenderer(object):
             # complex rectangle with ribs
             # First horizontal => 1st half stud
             self._add_horizontal_sketch_segment(geometries, constraints,
-                                                DIMS_HALF_STUD_SPACING_OUTER - DIMS_SIDE_THICKNESS
+                                                DIMS_HALF_STUD_SPACING_OUTER - DIMS_RIBBED_SIDE_THICKNESS
                                                 - (DIMS_SIDE_RIB_WIDTH / 2),
                                                 xy_plane_top_left_vector(), xy_plane_top_right_vector(),
                                                 False)
@@ -304,7 +300,7 @@ class BodyRenderer(object):
 
             # => Last half stud
             self._add_horizontal_sketch_segment_with_rib(geometries, constraints,
-                                                         DIMS_HALF_STUD_SPACING_OUTER - DIMS_SIDE_THICKNESS
+                                                         DIMS_HALF_STUD_SPACING_OUTER - DIMS_RIBBED_SIDE_THICKNESS
                                                          + (DIMS_SIDE_RIB_WIDTH / 2),
                                                          xy_plane_top_left_vector(), xy_plane_top_right_vector(),
                                                          xy_plane_top_right_vector(), xy_plane_bottom_right_vector(),
@@ -312,7 +308,7 @@ class BodyRenderer(object):
 
             # First vertical => 1st half stud
             self._add_vertical_sketch_segment(geometries, constraints,
-                                              DIMS_HALF_STUD_SPACING_OUTER - DIMS_SIDE_THICKNESS
+                                              DIMS_HALF_STUD_SPACING_OUTER - DIMS_RIBBED_SIDE_THICKNESS
                                               - (DIMS_SIDE_RIB_WIDTH / 2),
                                               xy_plane_top_right_vector(), xy_plane_bottom_right_vector(),
                                               False)
@@ -328,7 +324,7 @@ class BodyRenderer(object):
 
             # => Last half stud
             self._add_vertical_sketch_segment_with_rib(geometries, constraints,
-                                                       DIMS_HALF_STUD_SPACING_OUTER - DIMS_SIDE_THICKNESS
+                                                       DIMS_HALF_STUD_SPACING_OUTER - DIMS_RIBBED_SIDE_THICKNESS
                                                        + (DIMS_SIDE_RIB_WIDTH / 2),
                                                        xy_plane_top_right_vector(), xy_plane_bottom_right_vector(),
                                                        xy_plane_bottom_right_vector(), xy_plane_bottom_left_vector(),
@@ -336,7 +332,7 @@ class BodyRenderer(object):
 
             # Second horizontal => 1st half stud
             self._add_horizontal_sketch_segment(geometries, constraints,
-                                                DIMS_HALF_STUD_SPACING_OUTER - DIMS_SIDE_THICKNESS
+                                                DIMS_HALF_STUD_SPACING_OUTER - DIMS_RIBBED_SIDE_THICKNESS
                                                 - (DIMS_SIDE_RIB_WIDTH / 2),
                                                 xy_plane_top_left_vector(), xy_plane_top_right_vector(),
                                                 True)
@@ -352,7 +348,7 @@ class BodyRenderer(object):
 
             # => Last half stud
             self._add_horizontal_sketch_segment_with_rib(geometries, constraints,
-                                                         DIMS_HALF_STUD_SPACING_OUTER - DIMS_SIDE_THICKNESS
+                                                         DIMS_HALF_STUD_SPACING_OUTER - DIMS_RIBBED_SIDE_THICKNESS
                                                          + (DIMS_SIDE_RIB_WIDTH / 2),
                                                          xy_plane_top_left_vector(), xy_plane_top_right_vector(),
                                                          xy_plane_top_right_vector(), xy_plane_bottom_right_vector(),
@@ -360,7 +356,7 @@ class BodyRenderer(object):
 
             # Second vertical => 1st half stud
             self._add_vertical_sketch_segment(geometries, constraints,
-                                              DIMS_HALF_STUD_SPACING_OUTER - DIMS_SIDE_THICKNESS
+                                              DIMS_HALF_STUD_SPACING_OUTER - DIMS_RIBBED_SIDE_THICKNESS
                                               - (DIMS_SIDE_RIB_WIDTH / 2),
                                               xy_plane_top_right_vector(), xy_plane_bottom_right_vector(),
                                               True)
@@ -376,7 +372,7 @@ class BodyRenderer(object):
 
             # => Last half stud
             self._add_vertical_sketch_segment_with_rib(geometries, constraints,
-                                                       DIMS_HALF_STUD_SPACING_OUTER - DIMS_SIDE_THICKNESS
+                                                       DIMS_HALF_STUD_SPACING_OUTER - DIMS_RIBBED_SIDE_THICKNESS
                                                        + (DIMS_SIDE_RIB_WIDTH / 2),
                                                        xy_plane_top_right_vector(), xy_plane_bottom_right_vector(),
                                                        xy_plane_bottom_right_vector(), xy_plane_bottom_left_vector(),
@@ -385,10 +381,10 @@ class BodyRenderer(object):
             # Half stud offsets from origin (-1, 1 chooses the origin point)
             constraints.append(Sketcher.Constraint("DistanceX", 0, SKETCH_GEOMETRY_VERTEX_START_INDEX, -1,
                                                    SKETCH_GEOMETRY_VERTEX_START_INDEX,
-                                                   DIMS_HALF_STUD_SPACING_OUTER - DIMS_SIDE_THICKNESS))
+                                                   DIMS_HALF_STUD_SPACING_OUTER - DIMS_RIBBED_SIDE_THICKNESS))
             constraints.append(Sketcher.Constraint("DistanceY", 0, SKETCH_GEOMETRY_VERTEX_START_INDEX, -1,
                                                    SKETCH_GEOMETRY_VERTEX_START_INDEX,
-                                                   DIMS_HALF_STUD_SPACING_OUTER - DIMS_SIDE_THICKNESS))
+                                                   DIMS_HALF_STUD_SPACING_OUTER - DIMS_RIBBED_SIDE_THICKNESS))
         else:
 
             # simple rectangle
@@ -419,21 +415,21 @@ class BodyRenderer(object):
                                                    SKETCH_GEOMETRY_VERTEX_END_INDEX,
                                                    (self.width - 1) * DIMS_STUD_SPACING_INNER
                                                    + (2 * DIMS_HALF_STUD_SPACING_OUTER)
-                                                   - (2 * DIMS_SIDE_THICKNESS)))
+                                                   - (2 * DIMS_FLAT_SIDE_THICKNESS)))
             # Depth
             constraints.append(Sketcher.Constraint("DistanceY", 1, SKETCH_GEOMETRY_VERTEX_START_INDEX, 1,
                                                    SKETCH_GEOMETRY_VERTEX_END_INDEX,
                                                    (self.depth - 1) * DIMS_STUD_SPACING_INNER
                                                    + (2 * DIMS_HALF_STUD_SPACING_OUTER)
-                                                   - (2 * DIMS_SIDE_THICKNESS)))
+                                                   - (2 * DIMS_FLAT_SIDE_THICKNESS)))
 
             # Half stud offsets from origin
             constraints.append(Sketcher.Constraint("DistanceX", 0, SKETCH_GEOMETRY_VERTEX_START_INDEX,
                                                    SKETCH_GEOMETRY_ORIGIN_INDEX, SKETCH_GEOMETRY_VERTEX_START_INDEX,
-                                                   DIMS_HALF_STUD_SPACING_OUTER - DIMS_SIDE_THICKNESS))
+                                                   DIMS_HALF_STUD_SPACING_OUTER - DIMS_FLAT_SIDE_THICKNESS))
             constraints.append(Sketcher.Constraint("DistanceY", 0, SKETCH_GEOMETRY_VERTEX_START_INDEX,
                                                    SKETCH_GEOMETRY_ORIGIN_INDEX, SKETCH_GEOMETRY_VERTEX_START_INDEX,
-                                                   DIMS_HALF_STUD_SPACING_OUTER - DIMS_SIDE_THICKNESS))
+                                                   DIMS_HALF_STUD_SPACING_OUTER - DIMS_FLAT_SIDE_THICKNESS))
 
         body_pocket_sketch.addGeometry(geometries, False)
         body_pocket_sketch.addConstraint(constraints)
@@ -796,6 +792,10 @@ class BodyRenderer(object):
 
         self._render_body_pad_and_fillets()
 
+        # TODO: support side rib variation for modern 2x1 tile and technic bricks with non-offset holes
+        # TODO: 0.25 fillet on inner corners
         self._render_body_pocket()
 
+        # TODO: don't render sticks if technic holes exist and are offset
+        # TODO: determine a replacement for internal ribs if side studs exist with holes
         self._render_tubes_or_sticks()

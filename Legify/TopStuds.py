@@ -66,6 +66,7 @@ class TopStudsRenderer:
         self.doc.recompute()
 
         # determine the stud outer edges
+        # TODO: failed to identify edges
         edge_names = get_circle_edge_names(self.top_datum_plane, True, DIMS_STUD_HEIGHT, top_studs_outside_pad,
                                            DIMS_STUD_OUTER_RADIUS)
 

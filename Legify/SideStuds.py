@@ -93,7 +93,7 @@ class SideStudsRenderer:
         side_studs_inside_pocket.Type = POCKET_TYPE_DIMENSION
         side_studs_inside_pocket.Profile = side_studs_inside_pocket_sketch
         side_studs_inside_pocket.Reversed = inverted
-        side_studs_inside_pocket.Length = DIMS_SIDE_THICKNESS + DIMS_STUD_INSIDE_HOLE_TOP_OFFSET
+        side_studs_inside_pocket.Length = DIMS_RIBBED_SIDE_THICKNESS + DIMS_STUD_INSIDE_HOLE_TOP_OFFSET
 
         self.doc.recompute()
         side_studs_inside_pocket_sketch.ViewObject.Visibility = False
