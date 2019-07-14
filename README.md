@@ -40,13 +40,16 @@ These all form the basis of a future planned project...
 
 ## TODO
 
-- [ ] Confirm some dimensions
-- [ ] Pin Rendering
-- [ ] Technic Hole Rendering
-- [ ] Support modern tile where the bottom has a small outside pocket (and check if fillet is also required)
+- [x] Confirm some dimensions
+- [x] Technic Hole Rendering
+- [x] Determine if the inner edge of open studs and hole studs should be filleted
+- [ ] 0.25mm fillet on internal brick corners
+- [ ] Determine a replacement for internal ribs if side studs exist with holes
+- [ ] Determine a replacement for tube ribs if technic holes exist
+- [ ] Technic Axle Hole Rendering
+- [ ] Technic Pin Rendering
 - [ ] Support rib variation in modern 2x1 tile and 2x1 technic brick with 2 non-offset holes
-- [ ] Determine a replacement for internal brick ribs if side hole studs exist
-- [ ] Determine if the inner edge of open studs and hole studs should be filleted
+- [ ] Support modern tile where the bottom has a small outside pocket (and check if fillet is also required)
 
 ## Screenshots
 ![Parameters](images/parameters.png "Parameters")
