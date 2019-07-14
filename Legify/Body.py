@@ -796,6 +796,5 @@ class BodyRenderer(object):
         # TODO: 0.25 fillet on inner corners
         self._render_body_pocket()
 
-        # TODO: don't render sticks if technic holes exist and are offset
         # TODO: determine a replacement for internal ribs if side studs exist with holes
         self._render_tubes_or_sticks()
