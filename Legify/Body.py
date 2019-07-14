@@ -11,9 +11,9 @@ class BodyRenderer(object):
     def __init__(self):
         Console.PrintMessage("BodyRenderer\n")
 
-        self.brick_width = None
-        self.brick_depth = None
-        self.brick_height = None
+        self.width = None
+        self.depth = None
+        self.height = None
 
         self.hole_style = None
         self.holes_offset = None
@@ -199,19 +199,6 @@ class BodyRenderer(object):
         constraints.append(Sketcher.Constraint("Coincident", segment_count + 3, SKETCH_GEOMETRY_VERTEX_END_INDEX,
                                                segment_count, SKETCH_GEOMETRY_VERTEX_START_INDEX))
 
-    @staticmethod
-    def _add_tube_circle_sketch(geometries, constraints):
-        Console.PrintMessage("_add_tube_circle_sketch()\n")
-
-        geometries.append(Part.Circle())
-        constraints.append(Sketcher.Constraint("Radius", 0, DIMS_TUBE_OUTER_RADIUS))
-        constraints.append(Sketcher.Constraint("DistanceX", SKETCH_GEOMETRY_ORIGIN_INDEX,
-                                               SKETCH_GEOMETRY_VERTEX_START_INDEX, 0,
-                                               SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX, 0.5 * DIMS_STUD_SPACING_INNER))
-        constraints.append(Sketcher.Constraint("DistanceY", SKETCH_GEOMETRY_ORIGIN_INDEX,
-                                               SKETCH_GEOMETRY_VERTEX_START_INDEX, 0,
-                                               SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX, 0.5 * DIMS_STUD_SPACING_INNER))
-
     def _render_body_pad_and_fillets(self):
         Console.PrintMessage("_render_body_pad_and_edge_fillets()\n")
 
@@ -252,10 +239,10 @@ class BodyRenderer(object):
 
             # Width
             Sketcher.Constraint("DistanceX", 0, SKETCH_GEOMETRY_VERTEX_START_INDEX, 0, SKETCH_GEOMETRY_VERTEX_END_INDEX,
-                                (self.brick_width - 1) * DIMS_STUD_SPACING_INNER + (2 * DIMS_HALF_STUD_SPACING_OUTER)),
+                                (self.width - 1) * DIMS_STUD_SPACING_INNER + (2 * DIMS_HALF_STUD_SPACING_OUTER)),
             # Depth
             Sketcher.Constraint("DistanceY", 1, SKETCH_GEOMETRY_VERTEX_START_INDEX, 1, SKETCH_GEOMETRY_VERTEX_END_INDEX,
-                                (self.brick_depth - 1) * DIMS_STUD_SPACING_INNER + (2 * DIMS_HALF_STUD_SPACING_OUTER))
+                                (self.depth - 1) * DIMS_STUD_SPACING_INNER + (2 * DIMS_HALF_STUD_SPACING_OUTER))
         ])
 
         body_pad = self.brick.newObject("PartDesign::Pad", "body_pad")
@@ -287,14 +274,16 @@ class BodyRenderer(object):
 
         body_pocket_sketch = self.brick.newObject("Sketcher::SketchObject", "body_pocket_sketch")
 
-        # TODO: support rib variation in modern 2x1 tile and 2 x 1 technic brick with 2 non-offset holes
+        # TODO: support side rib variation in modern 2x1 tile and 2 x 1 technic brick with 2 non-offset holes
+        # TODO: don't render pins if technic holes exist and are offset
         # TODO: determine a replacement for internal ribs if side studs exist with holes
-        ribs = self.brick_height == 3 and self.brick_depth > 1 and self.brick_width > 1
+        # TODO: if not ribs, side thickness differs
+        side_ribs = self.height == 3 and self.depth > 1 and self.width > 1
 
         geometries = []
         constraints = []
 
-        if ribs:
+        if side_ribs:
 
             # complex rectangle with ribs
             # First horizontal => 1st half stud
@@ -305,7 +294,7 @@ class BodyRenderer(object):
                                                 False)
 
             # => N-1 studs
-            for i in range(0, self.brick_width - 1):
+            for i in range(0, self.width - 1):
                 self._add_horizontal_sketch_segment_with_rib(geometries, constraints,
                                                              DIMS_STUD_SPACING_INNER,
                                                              xy_plane_top_left_vector(), xy_plane_top_right_vector(),
@@ -329,7 +318,7 @@ class BodyRenderer(object):
                                               False)
 
             # => N-1 studs
-            for i in range(0, self.brick_depth - 1):
+            for i in range(0, self.depth - 1):
                 self._add_vertical_sketch_segment_with_rib(geometries, constraints,
                                                            DIMS_STUD_SPACING_INNER,
                                                            xy_plane_top_right_vector(), xy_plane_bottom_right_vector(),
@@ -353,7 +342,7 @@ class BodyRenderer(object):
                                                 True)
 
             # => N-1 studs
-            for i in range(0, self.brick_width - 1):
+            for i in range(0, self.width - 1):
                 self._add_horizontal_sketch_segment_with_rib(geometries, constraints,
                                                              DIMS_STUD_SPACING_INNER,
                                                              xy_plane_top_left_vector(), xy_plane_top_right_vector(),
@@ -377,7 +366,7 @@ class BodyRenderer(object):
                                               True)
 
             # => N-1 studs
-            for i in range(0, self.brick_depth - 1):
+            for i in range(0, self.depth - 1):
                 self._add_vertical_sketch_segment_with_rib(geometries, constraints,
                                                            DIMS_STUD_SPACING_INNER,
                                                            xy_plane_top_right_vector(), xy_plane_bottom_right_vector(),
@@ -428,13 +417,13 @@ class BodyRenderer(object):
             # Width
             constraints.append(Sketcher.Constraint("DistanceX", 0, SKETCH_GEOMETRY_VERTEX_START_INDEX, 0,
                                                    SKETCH_GEOMETRY_VERTEX_END_INDEX,
-                                                   (self.brick_width - 1) * DIMS_STUD_SPACING_INNER
+                                                   (self.width - 1) * DIMS_STUD_SPACING_INNER
                                                    + (2 * DIMS_HALF_STUD_SPACING_OUTER)
                                                    - (2 * DIMS_SIDE_THICKNESS)))
             # Depth
             constraints.append(Sketcher.Constraint("DistanceY", 1, SKETCH_GEOMETRY_VERTEX_START_INDEX, 1,
                                                    SKETCH_GEOMETRY_VERTEX_END_INDEX,
-                                                   (self.brick_depth - 1) * DIMS_STUD_SPACING_INNER
+                                                   (self.depth - 1) * DIMS_STUD_SPACING_INNER
                                                    + (2 * DIMS_HALF_STUD_SPACING_OUTER)
                                                    - (2 * DIMS_SIDE_THICKNESS)))
 
@@ -463,7 +452,7 @@ class BodyRenderer(object):
 
         # TODO: determine a replacement for tube ribs if technic holes exist
 
-        if self.brick_width > 2:
+        if self.width > 2:
 
             # front tube rubs pad
 
@@ -480,13 +469,13 @@ class BodyRenderer(object):
 
             # choose correct tubes to render ribs on
             indices = []
-            if self.brick_width % 2 == 0:
-                for i in range(2, self.brick_width, 2):
+            if self.width % 2 == 0:
+                for i in range(2, self.width, 2):
                     indices.append(i)
             else:
-                for i in range(((self.brick_width - 1) // 2), 0, -2):
+                for i in range(((self.width - 1) // 2), 0, -2):
                     indices.append(i)
-                for i in range(((self.brick_width - 1) // 2) + 1, self.brick_width, 2):
+                for i in range(((self.width - 1) // 2) + 1, self.width, 2):
                     indices.append(i)
             for i in indices:
                 self._add_rib_sketch(geometries, constraints, i,
@@ -505,7 +494,7 @@ class BodyRenderer(object):
             self.doc.recompute()
             front_tube_ribs_sketch.ViewObject.Visibility = False
 
-        if self.brick_depth > 2:
+        if self.depth > 2:
 
             # side tube rubs pad
 
@@ -522,13 +511,13 @@ class BodyRenderer(object):
 
             # choose correct tubes to render ribs on
             indices = []
-            if self.brick_depth % 2 == 0:
-                for i in range(2, self.brick_depth, 2):
+            if self.depth % 2 == 0:
+                for i in range(2, self.depth, 2):
                     indices.append(i)
             else:
-                for i in range(((self.brick_depth - 1) // 2), 0, -2):
-                        indices.append(i)
-                for i in range(((self.brick_depth - 1) // 2) + 1, self.brick_depth, 2):
+                for i in range(((self.depth - 1) // 2), 0, -2):
+                    indices.append(i)
+                for i in range(((self.depth - 1) // 2) + 1, self.depth, 2):
                     indices.append(i)
             for i in indices:
                 self._add_rib_sketch(geometries, constraints, i,
@@ -556,27 +545,22 @@ class BodyRenderer(object):
         tubes_pad_sketch.Placement = Placement(Vector(0, 0, DIMS_STICK_AND_TUBE_BOTTOM_INSET),
                                                Rotation(Vector(0, 0, 1), 0))
 
-        geometries = []
-        constraints = []
-
         # Outer circle
-        self._add_tube_circle_sketch(geometries, constraints)
-
-        tubes_pad_sketch.addGeometry(geometries, False)
-        tubes_pad_sketch.addConstraint(constraints)
+        add_circle_to_sketch(tubes_pad_sketch, DIMS_TUBE_OUTER_RADIUS, 0.5 * DIMS_STUD_SPACING_INNER,
+                             0.5 * DIMS_STUD_SPACING_INNER)
 
         # create array if needed
-        if self.brick_width > 2 or self.brick_depth > 2:
-            geometries = [0]
-            if self.brick_width == 2 and self.brick_depth > 2:
-                tubes_pad_sketch.addRectangularArray(geometries, Vector(0, DIMS_STUD_SPACING_INNER, 0), False,
-                                                     self.brick_depth - 1, self.brick_width - 1, True)
-            elif self.brick_width > 2 and self.brick_depth == 2:
-                tubes_pad_sketch.addRectangularArray(geometries, Vector(DIMS_STUD_SPACING_INNER, 0, 0), False,
-                                                     self.brick_width - 1, self.brick_depth - 1, True)
+        if self.width > 2 or self.depth > 2:
+            geometry_indices = [range(0, len(tubes_pad_sketch.Geometry) - 1)]
+            if self.width == 2 and self.depth > 2:
+                tubes_pad_sketch.addRectangularArray(geometry_indices, Vector(0, DIMS_STUD_SPACING_INNER, 0), False,
+                                                     self.depth - 1, self.width - 1, True)
+            elif self.width > 2 and self.depth == 2:
+                tubes_pad_sketch.addRectangularArray(geometry_indices, Vector(DIMS_STUD_SPACING_INNER, 0, 0), False,
+                                                     self.width - 1, self.depth - 1, True)
             else:
-                tubes_pad_sketch.addRectangularArray(geometries, Vector(0, DIMS_STUD_SPACING_INNER, 0), False,
-                                                     self.brick_depth - 1, self.brick_width - 1, True)
+                tubes_pad_sketch.addRectangularArray(geometry_indices, Vector(0, DIMS_STUD_SPACING_INNER, 0), False,
+                                                     self.depth - 1, self.width - 1, True)
 
         tubes_pad = self.brick.newObject("PartDesign::Pad", "tubes_pad")
         tubes_pad.Type = PAD_TYPE_TO_LAST
@@ -591,122 +575,22 @@ class BodyRenderer(object):
         tubes_pocket_sketch.Support = (self.top_inside_datum_plane, '')
         tubes_pocket_sketch.MapMode = 'FlatFace'
 
-        geometries = []
-        constraints = []
-
-        # Outer circle for construction
-        self._add_tube_circle_sketch(geometries, constraints)
-
-        # Tangent construction line
-        geometries.append(Part.LineSegment(xy_plane_top_left_vector(), xy_plane_bottom_right_vector()))
-        constraints.append(Sketcher.Constraint('Angle', 1, -45 * math.pi / 180))
-        constraints.append(Sketcher.Constraint('Tangent', 1, 0))
-        constraints.append(Sketcher.Constraint('PointOnObject', 1, SKETCH_GEOMETRY_VERTEX_END_INDEX, 0))
-        constraints.append(Sketcher.Constraint("DistanceX", 1, SKETCH_GEOMETRY_VERTEX_START_INDEX, 1,
-                                               SKETCH_GEOMETRY_VERTEX_END_INDEX, 1))
-
-        # Four Line Segments
-        x1 = (DIMS_STUD_SPACING_INNER / 2) - 2
-        x2 = (DIMS_STUD_SPACING_INNER / 2) - 1
-        x3 = (DIMS_STUD_SPACING_INNER / 2) + 1
-        x4 = (DIMS_STUD_SPACING_INNER / 2) + 2
-        y1 = (DIMS_STUD_SPACING_INNER / 2) - 2
-        y2 = (DIMS_STUD_SPACING_INNER / 2) - 1
-        y3 = (DIMS_STUD_SPACING_INNER / 2) + 1
-        y4 = (DIMS_STUD_SPACING_INNER / 2) + 2
-
-        geometries.append(Part.LineSegment(Vector(x2, y1, 0), Vector(x1, y2, 0)))
-        geometries.append(Part.LineSegment(Vector(x1, y3, 0), Vector(x2, y4, 0)))
-        geometries.append(Part.LineSegment(Vector(x3, y4, 0), Vector(x4, y3, 0)))
-        geometries.append(Part.LineSegment(Vector(x4, y2, 0), Vector(x3, y1, 0)))
-
-        constraints.append(Sketcher.Constraint('Equal', 2, 4))
-        constraints.append(Sketcher.Constraint('Equal', 3, 5))
-        constraints.append(Sketcher.Constraint('Equal', 2, 3))
-        constraints.append(Sketcher.Constraint('Parallel', 3, 5))
-        constraints.append(Sketcher.Constraint('Parallel', 2, 4))
-        constraints.append(Sketcher.Constraint('Perpendicular', 2, 3))
-
-        # Parallel to tangent line as
-        constraints.append(Sketcher.Constraint('Parallel', 1, 2))
-
-        # Four Arcs
-        rad1 = 160 * math.pi / 180
-        rad2 = 200 * math.pi / 180
-        rad3 = 70 * math.pi / 180
-        rad4 = 110 * math.pi / 180
-        rad5 = -20 * math.pi / 180
-        rad6 = 20 * math.pi / 180
-        rad7 = -110 * math.pi / 180
-        rad8 = -70 * math.pi / 180
-        geometries.append(Part.ArcOfCircle(
-            Part.Circle(Vector(4, 4, 0), Vector(0, 0, 1), DIMS_TUBE_INNER_RADIUS), rad1, rad2))
-        geometries.append(Part.ArcOfCircle(
-            Part.Circle(Vector(4, 4, 0), Vector(0, 0, 1), DIMS_TUBE_INNER_RADIUS), rad3, rad4))
-        geometries.append(Part.ArcOfCircle(
-            Part.Circle(Vector(4, 4, 0), Vector(0, 0, 1), DIMS_TUBE_INNER_RADIUS), rad5, rad6))
-        geometries.append(Part.ArcOfCircle(
-            Part.Circle(Vector(4, 4, 0), Vector(0, 0, 1), DIMS_TUBE_INNER_RADIUS), rad7, rad8))
-
-        # All arcs centred
-        constraints.append(Sketcher.Constraint('Coincident', 6, SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX, 0,
-                                               SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX))
-        constraints.append(Sketcher.Constraint('Coincident', 7, SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX, 0,
-                                               SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX))
-        constraints.append(Sketcher.Constraint('Coincident', 8, SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX, 0,
-                                               SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX))
-        constraints.append(Sketcher.Constraint('Coincident', 9, SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX, 0,
-                                               SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX))
-
-        # All equal radius arcs
-        constraints.append(Sketcher.Constraint('Radius', 6, DIMS_TUBE_INNER_RADIUS))
-        constraints.append(Sketcher.Constraint('Equal', 6, 7))
-        constraints.append(Sketcher.Constraint('Equal', 6, 8))
-        constraints.append(Sketcher.Constraint('Equal', 6, 9))
-
-        # Link arcs to segments
-        constraints.append(Sketcher.Constraint('Coincident', 2, SKETCH_GEOMETRY_VERTEX_END_INDEX, 6,
-                                               SKETCH_GEOMETRY_VERTEX_END_INDEX))
-        constraints.append(Sketcher.Constraint('Coincident', 6, SKETCH_GEOMETRY_VERTEX_START_INDEX, 3,
-                                               SKETCH_GEOMETRY_VERTEX_START_INDEX))
-        constraints.append(Sketcher.Constraint('Coincident', 3, SKETCH_GEOMETRY_VERTEX_END_INDEX, 7,
-                                               SKETCH_GEOMETRY_VERTEX_END_INDEX))
-        constraints.append(Sketcher.Constraint('Coincident', 7, SKETCH_GEOMETRY_VERTEX_START_INDEX, 4,
-                                               SKETCH_GEOMETRY_VERTEX_START_INDEX))
-        constraints.append(Sketcher.Constraint('Coincident', 4, SKETCH_GEOMETRY_VERTEX_END_INDEX, 8,
-                                               SKETCH_GEOMETRY_VERTEX_END_INDEX))
-        constraints.append(Sketcher.Constraint('Coincident', 8, SKETCH_GEOMETRY_VERTEX_START_INDEX, 5,
-                                               SKETCH_GEOMETRY_VERTEX_START_INDEX))
-        constraints.append(Sketcher.Constraint('Coincident', 5, SKETCH_GEOMETRY_VERTEX_END_INDEX, 9,
-                                               SKETCH_GEOMETRY_VERTEX_END_INDEX))
-        constraints.append(Sketcher.Constraint('Coincident', 9, SKETCH_GEOMETRY_VERTEX_START_INDEX, 2,
-                                               SKETCH_GEOMETRY_VERTEX_START_INDEX))
-
-        # The critical measurement: distance to tangent construction line
-        constraints.append(Sketcher.Constraint('Distance', 1, SKETCH_GEOMETRY_VERTEX_END_INDEX, 2,
-                                               DIMS_TUBE_FLAT_THICKNESS))
-
-        tubes_pocket_sketch.addGeometry(geometries, False)
-        tubes_pocket_sketch.addConstraint(constraints)
-
-        # Set circle as a construction line
-        tubes_pocket_sketch.toggleConstruction(0)
-
-        # Set tangent line as a construction line
-        tubes_pocket_sketch.toggleConstruction(1)
+        add_inner_circle_with_flats_to_sketch(tubes_pocket_sketch, DIMS_TUBE_OUTER_RADIUS, DIMS_TUBE_INNER_RADIUS,
+                                              DIMS_STUD_FLAT_THICKNESS, True, 0.5 * DIMS_STUD_SPACING_INNER,
+                                              0.5 * DIMS_STUD_SPACING_INNER)
 
         # create array if needed
-        if self.brick_width > 2 or self.brick_depth > 2:
-            geometries = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-            if self.brick_width == 2 and self.brick_depth > 2:
-                tubes_pocket_sketch.addRectangularArray(geometries, Vector(0, DIMS_STUD_SPACING_INNER, 0), False,
-                                                        self.brick_depth - 1, self.brick_width - 1, True)
-            elif self.brick_width > 2 and self.brick_depth == 2:
-                tubes_pocket_sketch.addRectangularArray(geometries, Vector(DIMS_STUD_SPACING_INNER, 0, 0), False,
-                                                        self.brick_width - 1, self.brick_depth - 1, True)
+        if self.width > 2 or self.depth > 2:
+            geometry_indices = [range(0, len(tubes_pocket_sketch.Geometry) - 1)]
+            if self.width == 2 and self.depth > 2:
+                tubes_pocket_sketch.addRectangularArray(geometry_indices, Vector(0, DIMS_STUD_SPACING_INNER, 0), False,
+                                                        self.depth - 1, self.width - 1, True)
+            elif self.width > 2 and self.depth == 2:
+                tubes_pocket_sketch.addRectangularArray(geometry_indices, Vector(DIMS_STUD_SPACING_INNER, 0, 0), False,
+                                                        self.width - 1, self.depth - 1, True)
             else:
-                tubes_pocket_sketch.addRectangularArray(geometries, Vector(0, DIMS_STUD_SPACING_INNER, 0), False,
-                                                        self.brick_depth - 1, self.brick_width - 1, True)
+                tubes_pocket_sketch.addRectangularArray(geometry_indices, Vector(0, DIMS_STUD_SPACING_INNER, 0), False,
+                                                        self.depth - 1, self.width - 1, True)
 
         tubes_pocket = self.brick.newObject("PartDesign::Pocket", "tubes_pocket")
         tubes_pocket.Type = POCKET_TYPE_THROUGH_ALL
@@ -721,7 +605,7 @@ class BodyRenderer(object):
         # stick ribs pad
 
         stick_ribs_sketch = self.brick.newObject("Sketcher::SketchObject", "stick_ribs_sketch")
-        if self.brick_width > 1:
+        if self.width > 1:
             stick_ribs_sketch.Support = (self.front_inside_datum_plane, '')
         else:
             stick_ribs_sketch.Support = (self.left_inside_datum_plane, '')
@@ -736,10 +620,10 @@ class BodyRenderer(object):
 
         # choose correct sticks to render ribs on
         indices = []
-        if self.brick_width > 1:
-            studs = self.brick_width
+        if self.width > 1:
+            studs = self.width
         else:
-            studs = self.brick_depth
+            studs = self.depth
 
         # for stud count between from 2 to 4 each stick has rib
         if studs < 5:
@@ -768,14 +652,14 @@ class BodyRenderer(object):
         stick_ribs_pad = self.brick.newObject("PartDesign::Pad", "stick_ribs_pad")
         stick_ribs_pad.Type = PAD_TYPE_TO_LAST
         stick_ribs_pad.Profile = stick_ribs_sketch
-        if self.brick_width > 1:
+        if self.width > 1:
             stick_ribs_pad.Reversed = 1
 
         self.doc.recompute()
         stick_ribs_sketch.ViewObject.Visibility = False
 
-    def _render_sticks(self, hollow_sticks):
-        Console.PrintMessage("_render_sticks({0})\n".format(hollow_sticks))
+    def _render_sticks(self):
+        Console.PrintMessage("_render_sticks()\n")
 
         # sticks pad
 
@@ -791,7 +675,7 @@ class BodyRenderer(object):
         constraints.append(Sketcher.Constraint("Radius", 0, DIMS_STICK_OUTER_RADIUS))
 
         # Half stud offsets from origin
-        if self.brick_width > 1:
+        if self.width > 1:
             constraints.append(Sketcher.Constraint("DistanceX", SKETCH_GEOMETRY_ORIGIN_INDEX,
                                                    SKETCH_GEOMETRY_VERTEX_START_INDEX, 0,
                                                    SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX, 0.5 * DIMS_STUD_SPACING_INNER))
@@ -809,12 +693,12 @@ class BodyRenderer(object):
         sticks_pad_sketch.addGeometry(geometries, False)
         sticks_pad_sketch.addConstraint(constraints)
 
-        if self.brick_width > 1:
+        if self.width > 1:
             sticks_pad_sketch.addRectangularArray([0], Vector(DIMS_STUD_SPACING_INNER, 0, 0), False,
-                                                  self.brick_width - 1, 1, True)
+                                                  self.width - 1, 1, True)
         else:
             sticks_pad_sketch.addRectangularArray([0], Vector(0, DIMS_STUD_SPACING_INNER, 0), False,
-                                                  self.brick_depth - 1, 1, True)
+                                                  self.depth - 1, 1, True)
 
         sticks_pad = self.brick.newObject("PartDesign::Pad", "sticks_pad")
         sticks_pad.Type = PAD_TYPE_TO_LAST
@@ -823,64 +707,60 @@ class BodyRenderer(object):
         self.doc.recompute()
         sticks_pad_sketch.ViewObject.Visibility = False
 
-        if hollow_sticks:
+        # sticks pocket
 
-            # sticks pocket
+        sticks_pocket_sketch = self.brick.newObject("Sketcher::SketchObject", "sticks_pocket_sketch")
+        sticks_pocket_sketch.Support = (self.top_inside_datum_plane, '')
+        sticks_pocket_sketch.MapMode = 'FlatFace'
 
-            sticks_pocket_sketch = self.brick.newObject("Sketcher::SketchObject", "sticks_pocket_sketch")
-            sticks_pocket_sketch.Support = (self.top_inside_datum_plane, '')
-            sticks_pocket_sketch.MapMode = 'FlatFace'
+        geometries = []
+        constraints = []
 
-            geometries = []
-            constraints = []
+        geometries.append(Part.Circle())
+        constraints.append(Sketcher.Constraint("Radius", 0, DIMS_STICK_INNER_RADIUS))
 
-            geometries.append(Part.Circle())
-            constraints.append(Sketcher.Constraint("Radius", 0, DIMS_STICK_INNER_RADIUS))
+        # Half stud offsets from origin
+        if self.width > 1:
+            constraints.append(Sketcher.Constraint("DistanceX", SKETCH_GEOMETRY_ORIGIN_INDEX,
+                                                   SKETCH_GEOMETRY_VERTEX_START_INDEX, 0,
+                                                   SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX,
+                                                   0.5 * DIMS_STUD_SPACING_INNER))
+            constraints.append(Sketcher.Constraint("DistanceY", SKETCH_GEOMETRY_ORIGIN_INDEX,
+                                                   SKETCH_GEOMETRY_VERTEX_START_INDEX, 0,
+                                                   SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX, 0))
+        else:
+            constraints.append(Sketcher.Constraint("DistanceX", SKETCH_GEOMETRY_ORIGIN_INDEX,
+                                                   SKETCH_GEOMETRY_VERTEX_START_INDEX, 0,
+                                                   SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX, 0))
+            constraints.append(Sketcher.Constraint("DistanceY", SKETCH_GEOMETRY_ORIGIN_INDEX,
+                                                   SKETCH_GEOMETRY_VERTEX_START_INDEX, 0,
+                                                   SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX,
+                                                   0.5 * DIMS_STUD_SPACING_INNER))
 
-            # Half stud offsets from origin
-            if self.brick_width > 1:
-                constraints.append(Sketcher.Constraint("DistanceX", SKETCH_GEOMETRY_ORIGIN_INDEX,
-                                                       SKETCH_GEOMETRY_VERTEX_START_INDEX, 0,
-                                                       SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX,
-                                                       0.5 * DIMS_STUD_SPACING_INNER))
-                constraints.append(Sketcher.Constraint("DistanceY", SKETCH_GEOMETRY_ORIGIN_INDEX,
-                                                       SKETCH_GEOMETRY_VERTEX_START_INDEX, 0,
-                                                       SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX, 0))
-            else:
-                constraints.append(Sketcher.Constraint("DistanceX", SKETCH_GEOMETRY_ORIGIN_INDEX,
-                                                       SKETCH_GEOMETRY_VERTEX_START_INDEX, 0,
-                                                       SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX, 0))
-                constraints.append(Sketcher.Constraint("DistanceY", SKETCH_GEOMETRY_ORIGIN_INDEX,
-                                                       SKETCH_GEOMETRY_VERTEX_START_INDEX, 0,
-                                                       SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX,
-                                                       0.5 * DIMS_STUD_SPACING_INNER))
+        sticks_pocket_sketch.addGeometry(geometries, False)
+        sticks_pocket_sketch.addConstraint(constraints)
 
-            sticks_pocket_sketch.addGeometry(geometries, False)
-            sticks_pocket_sketch.addConstraint(constraints)
+        if self.width > 1:
+            sticks_pocket_sketch.addRectangularArray([0], Vector(DIMS_STUD_SPACING_INNER, 0, 0), False,
+                                                     self.width - 1, 1, True)
+        if self.depth > 1:
+            sticks_pocket_sketch.addRectangularArray([0], Vector(0, DIMS_STUD_SPACING_INNER, 0), False,
+                                                     self.depth - 1, 1, True)
 
-            if self.brick_width > 1:
-                sticks_pocket_sketch.addRectangularArray([0], Vector(DIMS_STUD_SPACING_INNER, 0, 0), False,
-                                                         self.brick_width - 1, 1, True)
-            if self.brick_depth > 1:
-                sticks_pocket_sketch.addRectangularArray([0], Vector(0, DIMS_STUD_SPACING_INNER, 0), False,
-                                                         self.brick_depth - 1, 1, True)
+        sticks_pocket = self.brick.newObject("PartDesign::Pocket", "sticks_pocket")
+        sticks_pocket.Type = POCKET_TYPE_THROUGH_ALL
+        sticks_pocket.Profile = sticks_pocket_sketch
 
-            sticks_pocket = self.brick.newObject("PartDesign::Pocket", "sticks_pocket")
-            sticks_pocket.Type = POCKET_TYPE_THROUGH_ALL
-            sticks_pocket.Profile = sticks_pocket_sketch
-
-            self.doc.recompute()
-            sticks_pocket_sketch.ViewObject.Visibility = False
+        self.doc.recompute()
+        sticks_pocket_sketch.ViewObject.Visibility = False
 
     def _render_tubes_or_sticks(self):
         Console.PrintMessage("_render_tubes_or_sticks()\n")
 
-        tubes = self.brick_depth > 1 and self.brick_width > 1
-        tube_ribs = tubes and self.brick_height > 1 and (self.brick_depth > 2 or self.brick_width > 2)
-        sticks = not tubes and (self.brick_depth > 1 or self.brick_width > 1)
-        stick_ribs = sticks and self.brick_height > 1 and not self.hole_style == HoleStyle.HOLE
-        # TODO - are technic pins hollow? and what about new single stud deep, multi stud wide bricks?
-        hollow_sticks = sticks and self.brick_height == 1
+        tubes = self.depth > 1 and self.width > 1
+        tube_ribs = tubes and self.height > 1 and (self.depth > 2 or self.width > 2)
+        sticks = not tubes and (self.depth > 1 or self.width > 1)
+        stick_ribs = sticks and self.height > 1 and not self.hole_style == HoleStyle.HOLE
 
         if tube_ribs:
             self._render_tube_ribs()
@@ -892,14 +772,14 @@ class BodyRenderer(object):
             self._render_stick_ribs()
 
         if sticks:
-            self._render_sticks(hollow_sticks)
+            self._render_sticks()
 
     def render(self, context):
         Console.PrintMessage("render\n")
 
-        self.brick_width = context.width
-        self.brick_depth = context.depth
-        self.brick_height = context.height
+        self.width = context.width
+        self.depth = context.depth
+        self.height = context.height
 
         self.hole_style = context.hole_style
         self.holes_offset = context.holes_offset

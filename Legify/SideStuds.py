@@ -1,6 +1,6 @@
 # coding: UTF-8
 
-from FreeCAD import Console
+from FreeCAD import Console, Vector
 import Part
 import Sketcher
 from Legify.Common import *
@@ -27,48 +27,6 @@ class SideStudsRenderer:
         self.left_datum_plane = None
         self.right_datum_plane = None
 
-    @staticmethod
-    def _add_side_stud_outer_pad_sketch(geometries, constraints, offset):
-        Console.PrintMessage("_add_side_stud_outer_pad_sketch({0})\n".format(offset))
-
-        segment_count = len(geometries)
-
-        geometries.append(Part.Circle())
-        constraints.append(Sketcher.Constraint("Radius", segment_count, DIMS_STUD_OUTER_RADIUS))
-        constraints.append(Sketcher.Constraint("DistanceX", SKETCH_GEOMETRY_ORIGIN_INDEX,
-                                               SKETCH_GEOMETRY_VERTEX_START_INDEX, segment_count,
-                                               SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX, offset))
-        constraints.append(Sketcher.Constraint("DistanceY", SKETCH_GEOMETRY_ORIGIN_INDEX,
-                                               SKETCH_GEOMETRY_VERTEX_START_INDEX, segment_count,
-                                               SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX, DIMS_SIDE_STUD_CENTRE_HEIGHT))
-
-        # add a smaller inner circle
-        # TODO: add four flat sides to open stud
-        geometries.append(Part.Circle())
-        constraints.append(Sketcher.Constraint("Radius", segment_count + 1, DIMS_STUD_INNER_RADIUS))
-        constraints.append(Sketcher.Constraint("DistanceX", SKETCH_GEOMETRY_ORIGIN_INDEX,
-                                               SKETCH_GEOMETRY_VERTEX_START_INDEX,
-                                               segment_count + 1, SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX, offset))
-        constraints.append(Sketcher.Constraint("DistanceY", SKETCH_GEOMETRY_ORIGIN_INDEX,
-                                               SKETCH_GEOMETRY_VERTEX_START_INDEX,
-                                               segment_count + 1, SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX,
-                                               DIMS_SIDE_STUD_CENTRE_HEIGHT))
-
-    @staticmethod
-    def _add_side_stud_inside_pocket_sketch(geometries, constraints, offset):
-        Console.PrintMessage("_add_side_stud_inside_pocket_sketch({0})\n".format(offset))
-
-        segment_count = len(geometries)
-
-        geometries.append(Part.Circle())
-        constraints.append(Sketcher.Constraint("Radius", segment_count, DIMS_STUD_INNER_RADIUS))
-        constraints.append(Sketcher.Constraint("DistanceX", SKETCH_GEOMETRY_ORIGIN_INDEX,
-                                               SKETCH_GEOMETRY_VERTEX_START_INDEX, segment_count,
-                                               SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX, offset))
-        constraints.append(Sketcher.Constraint("DistanceY", SKETCH_GEOMETRY_ORIGIN_INDEX,
-                                               SKETCH_GEOMETRY_VERTEX_START_INDEX, segment_count,
-                                               SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX, DIMS_SIDE_STUD_CENTRE_HEIGHT))
-
     def _render_side_studs_outside(self, label, plane, count, inverted):
         Console.PrintMessage("render_side_studs_outside({0},{1})\n".format(label, count))
 
@@ -79,14 +37,16 @@ class SideStudsRenderer:
         side_studs_outside_pad_sketch.Support = (plane, '')
         side_studs_outside_pad_sketch.MapMode = 'FlatFace'
 
-        geometries = []
-        constraints = []
+        add_inner_circle_with_flats_to_sketch(side_studs_outside_pad_sketch, DIMS_STUD_OUTER_RADIUS,
+                                              DIMS_STUD_INNER_RADIUS, DIMS_STUD_FLAT_THICKNESS, False,
+                                              0, DIMS_SIDE_STUD_CENTRE_HEIGHT)
 
-        for i in range(0, count):
-            self._add_side_stud_outer_pad_sketch(geometries, constraints, i * DIMS_STUD_SPACING_INNER)
-
-        side_studs_outside_pad_sketch.addGeometry(geometries, False)
-        side_studs_outside_pad_sketch.addConstraint(constraints)
+        # create array if needed
+        if count > 1:
+            geometry_indices = [range(0, len(side_studs_outside_pad_sketch.Geometry) - 1)]
+            side_studs_outside_pad_sketch.addRectangularArray(geometry_indices,
+                                                              Vector(DIMS_STUD_SPACING_INNER, 0, 0), False,
+                                                              count, 1, True)
 
         side_studs_outside_pad = self.brick.newObject("PartDesign::Pad", label + "_side_studs_outside_pad")
         side_studs_outside_pad.Type = PAD_TYPE_DIMENSION
@@ -97,22 +57,13 @@ class SideStudsRenderer:
         self.doc.recompute()
 
         # determine the stud outer edges
-        edge_names = get_circle_edge_names(plane, inverted, side_studs_outside_pad, DIMS_STUD_OUTER_RADIUS)
+        edge_names = get_circle_edge_names(plane, inverted, DIMS_STUD_HEIGHT, side_studs_outside_pad,
+                                           DIMS_STUD_OUTER_RADIUS)
 
         # side studs outer fillet
         side_stud_outer_fillets = self.brick.newObject("PartDesign::Fillet", label + "_side_stud_outer_fillets")
         side_stud_outer_fillets.Radius = DIMS_STUD_FILLET
         side_stud_outer_fillets.Base = (side_studs_outside_pad, edge_names)
-
-        self.doc.recompute()
-
-        # determine the stud inner edges
-        edge_names = get_circle_edge_names(plane, inverted, side_stud_outer_fillets, DIMS_STUD_INNER_RADIUS)
-
-        # side studs inner fillet
-        side_stud_inner_fillets = self.brick.newObject("PartDesign::Fillet", label + "_side_stud_inner_fillets")
-        side_stud_inner_fillets.Radius = DIMS_EDGE_FILLET
-        side_stud_inner_fillets.Base = (side_stud_outer_fillets, edge_names)
 
         self.doc.recompute()
         side_studs_outside_pad_sketch.ViewObject.Visibility = False
@@ -127,14 +78,16 @@ class SideStudsRenderer:
         side_studs_inside_pocket_sketch.Support = (plane, '')
         side_studs_inside_pocket_sketch.MapMode = 'FlatFace'
 
-        geometries = []
-        constraints = []
+        add_inner_circle_with_flats_to_sketch(side_studs_inside_pocket_sketch, DIMS_STUD_OUTER_RADIUS,
+                                              DIMS_STUD_INNER_RADIUS, DIMS_STUD_FLAT_THICKNESS, True,
+                                              0, DIMS_SIDE_STUD_CENTRE_HEIGHT)
 
-        for i in range(0, count):
-            self._add_side_stud_inside_pocket_sketch(geometries, constraints, i * DIMS_STUD_SPACING_INNER)
-
-        side_studs_inside_pocket_sketch.addGeometry(geometries, False)
-        side_studs_inside_pocket_sketch.addConstraint(constraints)
+        # create array if needed
+        if count > 1:
+            geometry_indices = [range(0, len(side_studs_inside_pocket_sketch.Geometry) - 1)]
+            side_studs_inside_pocket_sketch.addRectangularArray(geometry_indices,
+                                                                Vector(DIMS_STUD_SPACING_INNER, 0, 0), False,
+                                                                count, 1, True)
 
         side_studs_inside_pocket = self.brick.newObject("PartDesign::Pocket", label + "_side_studs_inside_pocket")
         side_studs_inside_pocket.Type = POCKET_TYPE_DIMENSION

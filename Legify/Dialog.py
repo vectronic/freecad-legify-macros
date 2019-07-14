@@ -433,17 +433,13 @@ class Dialog:
         holes_style_note_label = QtGui.QLabel(u"ℹ")
         holes_style_note_label.setFont(self.note_font)
         holes_style_note_label.setToolTip(
-            "forced to None if conflicting with side_studs or pins\nor\nif dimensions.height < 3")
+            "forced to None if conflicting with side_studs or pins\nor\nif dimensions.height < 3\nor\nif "
+            "dimensions.width == 1 AND holes.offset == false")
         holes_style_note_label.setMinimumWidth(25)
 
         holes_offset_label = QtGui.QLabel("Half Stud Offset")
         holes_offset_label.setAlignment(QtCore.Qt.AlignRight)
         holes_offset_label.setMinimumWidth(100)
-
-        holes_offset_note_label = QtGui.QLabel(u"ℹ")
-        holes_offset_note_label.setFont(self.note_font)
-        holes_offset_note_label.setToolTip("ignored if dimensions.width == 1")
-        holes_offset_note_label.setMinimumWidth(25)
 
         holes_style_combobox = QtGui.QComboBox()
         holes_style_combobox.addItem("None", HoleStyle.NONE)
@@ -470,12 +466,9 @@ class Dialog:
         holes_offset_group_layout.setContentsMargins(0, 0, 0, 0)
         holes_offset_group_layout.addWidget(holes_offset_label)
         holes_offset_group_layout.addWidget(holes_offset_checkbox)
-        holes_offset_group_layout.addSpacing(6)
-        holes_offset_group_layout.addWidget(holes_offset_note_label)
         holes_offset_group_layout.addStretch(1)
         holes_offset_group_layout.setAlignment(holes_offset_label, QtCore.Qt.AlignVCenter)
         holes_offset_group_layout.setAlignment(holes_offset_checkbox, QtCore.Qt.AlignVCenter)
-        holes_offset_group_layout.setAlignment(holes_offset_note_label, QtCore.Qt.AlignVCenter)
 
         holes_group = QtGui.QGroupBox("Holes")
         holes_group.setFont(self.heading_font)

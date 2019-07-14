@@ -46,6 +46,7 @@ class BrickContext:
         self.back_inside_datum_plane = None
         self.left_inside_datum_plane = None
         self.right_inside_datum_plane = None
+        self.depth_mirror_datum_plane = None
 
         self.xz_plane = None
 
@@ -283,10 +284,10 @@ class BrickRenderer:
 
         offset = bool(holes["offset"])
 
-        if offset and self.width == 1:
-            Console.PrintMessage("holes[\"offset\"] set to False as "
-                                 "dimensions[\"width\"] == 1\n")
-            offset = False
+        if not offset and self.width == 1:
+            Console.PrintMessage("holes[\"style\"] set to HoleStyle.NONE as "
+                                 "dimensions[\"width\"] == 1 and holes[\"offset\"] == False\n")
+            style = HoleStyle.NONE
 
         self.hole_style = style
 
@@ -405,6 +406,16 @@ class BrickRenderer:
                    (DIMS_HALF_STUD_SPACING_OUTER - DIMS_SIDE_THICKNESS)), Rotation(0, 0, 0))
         right_inside_datum_plane.ViewObject.Visibility = False
         context.right_inside_datum_plane = right_inside_datum_plane
+
+        # Create depth mirror datum plane
+        depth_mirror_datum_plane = context.brick.newObject("PartDesign::Plane", "depth_mirror_datum_plane")
+        depth_mirror_datum_plane.MapReversed = False
+        depth_mirror_datum_plane.Support = [(context.brick.Origin.OriginFeatures[ORIGIN_XZ_PLANE_INDEX], '')]
+        depth_mirror_datum_plane.MapMode = 'FlatFace'
+        depth_mirror_datum_plane.AttachmentOffset = Placement(
+            Vector(0, 0, -1 * ((self.depth - 1) * DIMS_STUD_SPACING_INNER / 2)), Rotation(0, 0, 0))
+        depth_mirror_datum_plane.ViewObject.Visibility = False
+        context.depth_mirror_datum_plane = depth_mirror_datum_plane
 
         context.xz_plane = context.doc.XZ_Plane
 

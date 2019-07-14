@@ -20,38 +20,61 @@ class HolesRenderer:
         self.offset = None
 
         self.front_datum_plane = None
-        self.xz_plane = None
+        self.depth_mirror_datum_plane = None
+        self.top_inside_datum_plane = None
 
     @staticmethod
-    def _add_round_hole_sketch(geometries, constraints, offset, radius):
-        Console.PrintMessage("_add_round_hole_pad_sketch({0}, {1})\n".format(offset, radius))
+    def _add_technic_surround(geometries, constraints, hole_offset):
+        Console.PrintMessage("_add_technic_surround_to_sketch({0})\n".format(hole_offset))
 
         segment_count = len(geometries)
 
-        geometries.append(Part.Circle())
-        constraints.append(Sketcher.Constraint("Radius", segment_count, radius))
+        # Rounded bottom side arc
+        geometries.append(Part.ArcOfCircle(
+            Part.Circle(Vector(hole_offset + DIMS_TECHNIC_HOLE_OUTER_RADIUS, DIMS_TECHNIC_HOLE_CENTRE_HEIGHT, 0),
+                        Vector(0, 0, 1), DIMS_TECHNIC_HOLE_OUTER_RADIUS), math.pi, 2 * math.pi))
+
+        # arc first point
         constraints.append(Sketcher.Constraint("DistanceX", SKETCH_GEOMETRY_ORIGIN_INDEX,
                                                SKETCH_GEOMETRY_VERTEX_START_INDEX, segment_count,
-                                               SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX, offset))
+                                               SKETCH_GEOMETRY_VERTEX_START_INDEX,
+                                               hole_offset - DIMS_TECHNIC_HOLE_OUTER_RADIUS))
+        constraints.append(Sketcher.Constraint("DistanceY", SKETCH_GEOMETRY_ORIGIN_INDEX,
+                                               SKETCH_GEOMETRY_VERTEX_START_INDEX, segment_count,
+                                               SKETCH_GEOMETRY_VERTEX_START_INDEX, DIMS_TECHNIC_HOLE_CENTRE_HEIGHT))
+
+        # Arc centre
         constraints.append(Sketcher.Constraint("DistanceY", SKETCH_GEOMETRY_ORIGIN_INDEX,
                                                SKETCH_GEOMETRY_VERTEX_START_INDEX, segment_count,
                                                SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX, DIMS_TECHNIC_HOLE_CENTRE_HEIGHT))
 
-    @staticmethod
-    def _add_axle_hole_sketch(geometries, constraints, offset):
-        Console.PrintMessage("_add_axle_hole_pad_sketch({0})\n".format(offset))
+        # Arc second point
+        constraints.append(Sketcher.Constraint("DistanceX", segment_count, SKETCH_GEOMETRY_VERTEX_START_INDEX,
+                                               segment_count, SKETCH_GEOMETRY_VERTEX_END_INDEX,
+                                               2 * DIMS_TECHNIC_HOLE_OUTER_RADIUS))
+        constraints.append(Sketcher.Constraint("DistanceY", segment_count, SKETCH_GEOMETRY_VERTEX_START_INDEX,
+                                               segment_count, SKETCH_GEOMETRY_VERTEX_END_INDEX, 0))
 
-        segment_count = len(geometries)
+        geometries.append(Part.LineSegment(xz_plane_bottom_right_vector(), xz_plane_top_right_vector()))
+        constraints.append(Sketcher.Constraint("Vertical", segment_count + 1))
+        constraints.append(Sketcher.Constraint("Coincident", segment_count, SKETCH_GEOMETRY_VERTEX_END_INDEX,
+                                               segment_count + 1, SKETCH_GEOMETRY_VERTEX_START_INDEX))
 
-        # TODO: determine axle cross-section
-        # geometries.append(Part.Circle())
-        # constraints.append(Sketcher.Constraint("Radius", segment_count, radius))
-        # constraints.append(Sketcher.Constraint("DistanceX", SKETCH_GEOMETRY_ORIGIN_INDEX,
-        #                                        SKETCH_GEOMETRY_VERTEX_START_INDEX, segment_count,
-        #                                        SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX, offset))
-        # constraints.append(Sketcher.Constraint("DistanceY", SKETCH_GEOMETRY_ORIGIN_INDEX,
-        #                                        SKETCH_GEOMETRY_VERTEX_START_INDEX, segment_count,
-        #                                        SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX, DIMS_SIDE_FEATURE_CENTRE_HEIGHT))
+        # Render up until top_inside_datum_plane - already added as a line geometry element to the sketch
+        constraints.append(Sketcher.Constraint("PointOnObject", segment_count + 1, SKETCH_GEOMETRY_VERTEX_END_INDEX,
+                                               SKETCH_GEOMETRY_FIRST_CONSTRUCTION_INDEX))
+
+        geometries.append(Part.LineSegment(xz_plane_bottom_right_vector(), xz_plane_bottom_left_vector()))
+        constraints.append(Sketcher.Constraint("Horizontal", segment_count + 2))
+        constraints.append(Sketcher.Constraint("Coincident", segment_count + 1, SKETCH_GEOMETRY_VERTEX_END_INDEX,
+                                               segment_count + 2, SKETCH_GEOMETRY_VERTEX_START_INDEX))
+
+        geometries.append(Part.LineSegment(xz_plane_top_right_vector(), xz_plane_bottom_right_vector()))
+        constraints.append(Sketcher.Constraint("Vertical", segment_count + 3))
+        constraints.append(Sketcher.Constraint("Coincident", segment_count + 2, SKETCH_GEOMETRY_VERTEX_END_INDEX,
+                                               segment_count + 3, SKETCH_GEOMETRY_VERTEX_START_INDEX))
+        constraints.append(Sketcher.Constraint("Coincident", segment_count + 3, SKETCH_GEOMETRY_VERTEX_END_INDEX,
+                                               segment_count, SKETCH_GEOMETRY_VERTEX_START_INDEX))
 
     def _render_holes(self):
         Console.PrintMessage("render_holes()\n")
@@ -59,9 +82,7 @@ class HolesRenderer:
         hole_count = self.width if self.offset else (self.width - 1)
         hole_offset = 0 if self.offset else (DIMS_STUD_SPACING_INNER / 2)
 
-        # holes pad
-
-        # TODO: check cross-section of tubes meeting inside of body
+        # holes pad with cross-section meeting inside of body
 
         holes_pad_sketch = self.brick.newObject("Sketcher::SketchObject", "holes_pad_sketch")
         holes_pad_sketch.Support = (self.front_datum_plane, '')
@@ -71,9 +92,12 @@ class HolesRenderer:
         geometries = []
         constraints = []
 
+        # add top_inside_datum_plane to sketch as an edge so that it can be referenced
+        # this will add a line geometry element to the sketch as item 0
+        holes_pad_sketch.addExternal(self.top_inside_datum_plane.Label, '')
+
         for i in range(0, hole_count):
-            self._add_round_hole_sketch(geometries, constraints, hole_offset + (i * DIMS_STUD_SPACING_INNER),
-                                        DIMS_TECHNIC_HOLE_OUTER_RADIUS)
+            self._add_technic_surround(geometries, constraints, hole_offset + (i * DIMS_STUD_SPACING_INNER))
 
         holes_pad_sketch.addGeometry(geometries, False)
         holes_pad_sketch.addConstraint(constraints)
@@ -92,18 +116,17 @@ class HolesRenderer:
         holes_pocket_sketch.Support = (self.front_datum_plane, '')
         holes_pocket_sketch.MapMode = 'FlatFace'
 
-        geometries = []
-        constraints = []
+        # TODO: if/else render axle cross-section
+        # self._add_axle_hole_sketch(geometries, constraints, hole_offset + (i * DIMS_STUD_SPACING_INNER))
+        add_circle_to_sketch(holes_pocket_sketch, DIMS_TECHNIC_HOLE_INNER_RADIUS, hole_offset,
+                             DIMS_TECHNIC_HOLE_CENTRE_HEIGHT)
 
-        for i in range(0, hole_count):
-            if self.style == HoleStyle.HOLE:
-                self._add_round_hole_sketch(geometries, constraints, hole_offset + (i * DIMS_STUD_SPACING_INNER),
-                                            DIMS_TECHNIC_HOLE_INNER_RADIUS)
-            else:
-                self._add_axle_hole_sketch(geometries, constraints, hole_offset + (i * DIMS_STUD_SPACING_INNER))
-
-        holes_pocket_sketch.addGeometry(geometries, False)
-        holes_pocket_sketch.addConstraint(constraints)
+        # create array if needed
+        if hole_count > 1:
+            geometry_indices = [range(0, len(holes_pocket_sketch.Geometry) - 1)]
+            holes_pocket_sketch.addRectangularArray(geometry_indices,
+                                                    Vector(DIMS_STUD_SPACING_INNER, 0, 0), False,
+                                                    hole_count, 1, True)
 
         holes_pocket = self.brick.newObject("PartDesign::Pocket", "holes_pocket")
         holes_pocket.Type = POCKET_TYPE_THROUGH_ALL
@@ -121,15 +144,15 @@ class HolesRenderer:
             holes_counterbore_pocket_sketch.Support = (self.front_datum_plane, '')
             holes_counterbore_pocket_sketch.MapMode = 'FlatFace'
 
-            geometries = []
-            constraints = []
+            add_circle_to_sketch(holes_counterbore_pocket_sketch, DIMS_TECHNIC_HOLE_COUNTERBORE_RADIUS, hole_offset,
+                                 DIMS_TECHNIC_HOLE_CENTRE_HEIGHT)
 
-            for i in range(0, hole_count):
-                self._add_round_hole_sketch(geometries, constraints, hole_offset + (i * DIMS_STUD_SPACING_INNER),
-                                            DIMS_TECHNIC_HOLE_COUNTERBORE_RADIUS)
-
-            holes_counterbore_pocket_sketch.addGeometry(geometries, False)
-            holes_counterbore_pocket_sketch.addConstraint(constraints)
+            # create array if needed
+            if hole_count > 1:
+                geometry_indices = [range(0, len(holes_pocket_sketch.Geometry) - 1)]
+                holes_counterbore_pocket_sketch.addRectangularArray(geometry_indices,
+                                                                    Vector(DIMS_STUD_SPACING_INNER, 0, 0), False,
+                                                                    hole_count, 1, True)
 
             holes_counterbore_pocket = self.brick.newObject("PartDesign::Pocket", "holes_counterbore_pocket")
             holes_counterbore_pocket.Type = POCKET_TYPE_DIMENSION
@@ -142,35 +165,26 @@ class HolesRenderer:
 
             holes_counterbore_mirror = self.brick.newObject("PartDesign::Mirrored", "Mirrored")
             holes_counterbore_mirror.Originals = [holes_counterbore_pocket]
-            holes_counterbore_mirror.MirrorPlane = (self.xz_plane, [""])
+            holes_counterbore_mirror.MirrorPlane = (self.depth_mirror_datum_plane, [""])
             self.brick.Tip = holes_counterbore_mirror
 
             self.doc.recompute()
 
-            # TODO: fillet the outer hole of counterbore
+            # fillet the outer hole of counterbore
             # NOTE: looks like no filleting required on lower hole of counterbore
 
-            # determine the stud inner edges
+            edge_names = get_circle_edge_names(self.front_datum_plane, True, 0, holes_counterbore_mirror,
+                                               DIMS_TECHNIC_HOLE_COUNTERBORE_RADIUS)
 
-            # face_names = []
-            # for i in range(0, len(side_studs_outside_pad.Shape.Faces)):
-            #     f = side_studs_outside_pad.Shape.Faces[i]
-            #     # desired faces have two edges, both circles
-            #     if len(f.Edges) == 2:
-            #         if len(f.Edges[0].Vertexes) == 1 and len(f.Edges[1].Vertexes) == 1:
-            #             n1 = f.normalAt(0, 0)
-            #             n2 = plane.Shape.normalAt(0, 0)
-            #             n2 = n2 if inverted else n2.negative()
-            #             # TODO: filter inner edge
-            #             if n1.isEqual(n2, 1e-7):
-            #                 face_names.append("Face" + repr(i + 1))
-            #
-            # # side studs inner fillet
-            # side_stud_inner_fillets = self.brick.newObject("PartDesign::Fillet", label + "_side_stud_inner_fillets")
-            # side_stud_inner_fillets.Radius = DIMS_EDGE_FILLET
-            # side_stud_inner_fillets.Base = (side_studs_outside_pad, face_names)
-            #
-            # self.doc.recompute()
+            edge_names.extend(get_circle_edge_names(self.front_datum_plane, False, (2 * DIMS_HALF_STUD_SPACING_OUTER)
+                                                    + ((self.depth - 1) * DIMS_STUD_SPACING_INNER),
+                                                    holes_counterbore_mirror, DIMS_TECHNIC_HOLE_COUNTERBORE_RADIUS))
+
+            hole_counterbore_fillets = self.brick.newObject("PartDesign::Fillet", "hole_counterbore_fillets")
+            hole_counterbore_fillets.Radius = DIMS_EDGE_FILLET
+            hole_counterbore_fillets.Base = (holes_counterbore_mirror, edge_names)
+
+            self.doc.recompute()
             holes_counterbore_pocket_sketch.ViewObject.Visibility = False
 
     def render(self, context):
@@ -185,6 +199,7 @@ class HolesRenderer:
         self.offset = context.holes_offset
 
         self.front_datum_plane = context.front_datum_plane
-        self.xz_plane = context.xz_plane
+        self.depth_mirror_datum_plane = context.depth_mirror_datum_plane
+        self.top_inside_datum_plane = context.top_inside_datum_plane
 
         self._render_holes()
