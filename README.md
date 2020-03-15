@@ -11,10 +11,13 @@ This is a learning exercise undertaken to master the following:
 * Detailed modelling of toy bricks
  
 These all form the basis of a future planned project...
- 
+
+**NOTE**: This is no longer actively developed as I have learnt enough. The main lesson being that using Python scripts
+to create parametric models in FreeCAD is quite possibly insane! 
+
 ## Installation
 
-**Tested only with FreeCAD version >= 0.18**
+**Tested with FreeCAD version 0.18 and 0.19**
 
 #### MacOS
 
@@ -40,9 +43,6 @@ These all form the basis of a future planned project...
 
 ## TODO
 
-- [x] Confirm some dimensions
-- [x] Technic Hole Rendering
-- [x] Determine if the inner edge of open studs and hole studs should be filleted
 - [ ] 0.25mm fillet on internal brick corners
 - [ ] Determine a replacement for internal ribs if side studs exist with holes
 - [ ] Determine a replacement for tube ribs if technic holes exist
