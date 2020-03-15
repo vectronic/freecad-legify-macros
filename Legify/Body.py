@@ -274,7 +274,7 @@ class BodyRenderer(object):
 
         body_pocket_sketch = self.brick.newObject("Sketcher::SketchObject", "body_pocket_sketch")
 
-        side_ribs = self.height == 3 and self.depth > 1 and self.width > 1
+        side_ribs = self.height > 2 and self.depth > 1 and self.width > 1
 
         geometries = []
         constraints = []
@@ -483,7 +483,8 @@ class BodyRenderer(object):
             front_tube_ribs_sketch.addConstraint(constraints)
 
             front_tube_ribs_pad = self.brick.newObject("PartDesign::Pad", "front_tube_ribs_pad")
-            front_tube_ribs_pad.Type = PAD_TYPE_TO_LAST
+            front_tube_ribs_pad.Type = PAD_TYPE_UP_TO_FACE
+            front_tube_ribs_pad.UpToFace = (self.back_inside_datum_plane, [""])
             front_tube_ribs_pad.Profile = front_tube_ribs_sketch
             front_tube_ribs_pad.Reversed = 1
 
@@ -525,7 +526,8 @@ class BodyRenderer(object):
             side_tube_ribs_sketch.addConstraint(constraints)
 
             side_tube_ribs_pad = self.brick.newObject("PartDesign::Pad", "side_tube_ribs_pad")
-            side_tube_ribs_pad.Type = PAD_TYPE_TO_LAST
+            side_tube_ribs_pad.Type = PAD_TYPE_UP_TO_FACE
+            side_tube_ribs_pad.UpToFace = (self.right_inside_datum_plane, [""])
             side_tube_ribs_pad.Profile = side_tube_ribs_sketch
 
             self.doc.recompute()
@@ -559,7 +561,8 @@ class BodyRenderer(object):
                                                      self.depth - 1, self.width - 1, True)
 
         tubes_pad = self.brick.newObject("PartDesign::Pad", "tubes_pad")
-        tubes_pad.Type = PAD_TYPE_TO_LAST
+        tubes_pad.Type = PAD_TYPE_UP_TO_FACE
+        tubes_pad.UpToFace = (self.top_inside_datum_plane, [""])
         tubes_pad.Profile = tubes_pad_sketch
 
         self.doc.recompute()
@@ -646,7 +649,11 @@ class BodyRenderer(object):
         stick_ribs_sketch.addConstraint(constraints)
 
         stick_ribs_pad = self.brick.newObject("PartDesign::Pad", "stick_ribs_pad")
-        stick_ribs_pad.Type = PAD_TYPE_TO_LAST
+        stick_ribs_pad.Type = PAD_TYPE_UP_TO_FACE
+        if self.width > 1:
+            stick_ribs_pad.UpToFace = (self.back_inside_datum_plane, [""])
+        else:
+            stick_ribs_pad.UpToFace = (self.right_inside_datum_plane, [""])
         stick_ribs_pad.Profile = stick_ribs_sketch
         if self.width > 1:
             stick_ribs_pad.Reversed = 1
@@ -697,7 +704,8 @@ class BodyRenderer(object):
                                                   self.depth - 1, 1, True)
 
         sticks_pad = self.brick.newObject("PartDesign::Pad", "sticks_pad")
-        sticks_pad.Type = PAD_TYPE_TO_LAST
+        sticks_pad.Type = PAD_TYPE_UP_TO_FACE
+        sticks_pad.UpToFace = (self.top_inside_datum_plane, [""])
         sticks_pad.Profile = sticks_pad_sketch
 
         self.doc.recompute()
