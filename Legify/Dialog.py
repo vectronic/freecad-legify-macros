@@ -64,7 +64,7 @@ class Dialog:
 
         dimensions_height_spinbox = QtGui.QSpinBox()
         dimensions_height_spinbox.setMinimum(1)
-        dimensions_height_spinbox.setMaximum(3)
+        dimensions_height_spinbox.setMaximum(9)
         dimensions_height_spinbox.setFont(self.normal_font)
         dimensions_height_spinbox.setMinimumWidth(70)
 
@@ -79,7 +79,7 @@ class Dialog:
         dimensions_depth_note_label.setMinimumWidth(25)
 
         dimensions_height_note_label = QtGui.QLabel(u"ℹ")
-        dimensions_height_note_label.setToolTip("1..3 plates")
+        dimensions_height_note_label.setToolTip("1..9 plates")
         dimensions_height_note_label.setFont(self.note_font)
         dimensions_height_note_label.setMinimumWidth(25)
 

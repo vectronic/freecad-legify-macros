@@ -79,8 +79,8 @@ class BrickRenderer:
             raise Exception("dimensions[\"depth\"] must be: 1..20")
         if width < 1 or width > 20:
             raise Exception("dimensions[\"width\"] must be: 1..20")
-        if height < 1 or height > 3:
-            raise Exception("dimensions[\"height\"] must be: 1..3")
+        if height < 1 or height > 9:
+            raise Exception("dimensions[\"height\"] must be: 1..9")
 
         self.width = width
         self.depth = depth
