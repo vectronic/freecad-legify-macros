@@ -111,7 +111,7 @@ class TopStudsRenderer:
         top_studs_inside_pocket.Type = POCKET_TYPE_DIMENSION
         top_studs_inside_pocket.Profile = top_studs_inside_pocket_sketch
         top_studs_inside_pocket.Reversed = True
-        top_studs_inside_pocket.Length = DIMS_TOP_THICKNESS + DIMS_STUD_INSIDE_HOLE_TOP_OFFSET
+        top_studs_inside_pocket.Length = DIMS_STUD_INSIDE_HOLE_TOP_OFFSET
 
         self.doc.recompute()
         top_studs_inside_pocket_sketch.ViewObject.Visibility = False
