@@ -20,6 +20,8 @@ class HolesRenderer:
         self.offset = None
 
         self.front_datum_plane = None
+        self.front_inside_datum_plane = None
+        self.back_inside_datum_plane = None
         self.depth_mirror_datum_plane = None
         self.top_inside_datum_plane = None
 
@@ -85,9 +87,8 @@ class HolesRenderer:
         # holes pad with cross-section meeting inside of body
 
         holes_pad_sketch = self.brick.newObject("Sketcher::SketchObject", "holes_pad_sketch")
-        holes_pad_sketch.Support = (self.front_datum_plane, '')
+        holes_pad_sketch.Support = (self.front_inside_datum_plane, '')
         holes_pad_sketch.MapMode = 'FlatFace'
-        holes_pad_sketch.AttachmentOffset = Placement(Vector(0, 0, -1 * DIMS_RIBBED_SIDE_THICKNESS), Rotation(0, 0, 0))
 
         geometries = []
         constraints = []
@@ -103,7 +104,8 @@ class HolesRenderer:
         holes_pad_sketch.addConstraint(constraints)
 
         holes_pad = self.brick.newObject("PartDesign::Pad", "holes_pad")
-        holes_pad.Type = PAD_TYPE_TO_LAST
+        holes_pad.Type = PAD_TYPE_UP_TO_FACE
+        holes_pad.UpToFace = (self.back_inside_datum_plane, [""])
         holes_pad.Profile = holes_pad_sketch
 
         holes_pad.Reversed = True
@@ -199,6 +201,8 @@ class HolesRenderer:
         self.offset = context.holes_offset
 
         self.front_datum_plane = context.front_datum_plane
+        self.front_inside_datum_plane = context.front_inside_datum_plane
+        self.back_inside_datum_plane = context.back_inside_datum_plane
         self.depth_mirror_datum_plane = context.depth_mirror_datum_plane
         self.top_inside_datum_plane = context.top_inside_datum_plane
 
