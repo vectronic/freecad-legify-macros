@@ -543,9 +543,10 @@ class BodyRenderer(object):
         tubes_pad_sketch.Placement = Placement(Vector(0, 0, DIMS_STICK_AND_TUBE_BOTTOM_INSET),
                                                Rotation(Vector(0, 0, 1), 0))
 
-        # Outer circle
-        add_circle_to_sketch(tubes_pad_sketch, DIMS_TUBE_OUTER_RADIUS, 0.5 * DIMS_STUD_SPACING_INNER,
-                             0.5 * DIMS_STUD_SPACING_INNER)
+        add_inner_circle_with_flats_to_sketch(tubes_pad_sketch, DIMS_TUBE_OUTER_RADIUS,
+                                              DIMS_TUBE_INNER_RADIUS, DIMS_STUD_FLAT_THICKNESS, False,
+                                              0.5 * DIMS_STUD_SPACING_INNER,
+                                              0.5 * DIMS_STUD_SPACING_INNER)
 
         # create array if needed
         if self.width > 2 or self.depth > 2:
@@ -567,36 +568,6 @@ class BodyRenderer(object):
 
         self.doc.recompute()
         tubes_pad_sketch.ViewObject.Visibility = False
-
-        # tubes pocket
-
-        tubes_pocket_sketch = self.brick.newObject("Sketcher::SketchObject", "tubes_pocket_sketch")
-        tubes_pocket_sketch.Support = (self.top_inside_datum_plane, '')
-        tubes_pocket_sketch.MapMode = 'FlatFace'
-
-        add_inner_circle_with_flats_to_sketch(tubes_pocket_sketch, DIMS_TUBE_OUTER_RADIUS, DIMS_TUBE_INNER_RADIUS,
-                                              DIMS_STUD_FLAT_THICKNESS, True, 0.5 * DIMS_STUD_SPACING_INNER,
-                                              0.5 * DIMS_STUD_SPACING_INNER)
-
-        # create array if needed
-        if self.width > 2 or self.depth > 2:
-            geometry_indices = [range(0, len(tubes_pocket_sketch.Geometry) - 1)]
-            if self.width == 2 and self.depth > 2:
-                tubes_pocket_sketch.addRectangularArray(geometry_indices, Vector(0, DIMS_STUD_SPACING_INNER, 0), False,
-                                                        self.depth - 1, self.width - 1, True)
-            elif self.width > 2 and self.depth == 2:
-                tubes_pocket_sketch.addRectangularArray(geometry_indices, Vector(DIMS_STUD_SPACING_INNER, 0, 0), False,
-                                                        self.width - 1, self.depth - 1, True)
-            else:
-                tubes_pocket_sketch.addRectangularArray(geometry_indices, Vector(0, DIMS_STUD_SPACING_INNER, 0), False,
-                                                        self.depth - 1, self.width - 1, True)
-
-        tubes_pocket = self.brick.newObject("PartDesign::Pocket", "tubes_pocket")
-        tubes_pocket.Type = POCKET_TYPE_THROUGH_ALL
-        tubes_pocket.Profile = tubes_pocket_sketch
-
-        self.doc.recompute()
-        tubes_pocket_sketch.ViewObject.Visibility = False
 
     def _render_stick_ribs(self):
         Console.PrintMessage("_render_stick_ribs()\n")
