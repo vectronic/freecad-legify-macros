@@ -82,7 +82,7 @@ class HolesRenderer:
         Console.PrintMessage("render_holes()\n")
 
         hole_count = self.width if self.offset else (self.width - 1)
-        hole_offset = 0 if self.offset else (DIMS_STUD_SPACING_INNER / 2)
+        hole_offset = 0 if self.offset else (DIMS_STUD_SPACING / 2)
 
         # holes pad with cross-section meeting inside of body
 
@@ -98,7 +98,7 @@ class HolesRenderer:
         holes_pad_sketch.addExternal(self.top_inside_datum_plane.Label, '')
 
         for i in range(0, hole_count):
-            self._add_technic_surround(geometries, constraints, hole_offset + (i * DIMS_STUD_SPACING_INNER))
+            self._add_technic_surround(geometries, constraints, hole_offset + (i * DIMS_STUD_SPACING))
 
         holes_pad_sketch.addGeometry(geometries, False)
         holes_pad_sketch.addConstraint(constraints)
@@ -119,7 +119,7 @@ class HolesRenderer:
         holes_pocket_sketch.MapMode = 'FlatFace'
 
         # TODO: if/else render axle cross-section
-        # self._add_axle_hole_sketch(geometries, constraints, hole_offset + (i * DIMS_STUD_SPACING_INNER))
+        # self._add_axle_hole_sketch(geometries, constraints, hole_offset + (i * DIMS_STUD_SPACING))
         add_circle_to_sketch(holes_pocket_sketch, DIMS_TECHNIC_HOLE_INNER_RADIUS, hole_offset,
                              DIMS_TECHNIC_HOLE_CENTRE_HEIGHT)
 
@@ -127,7 +127,7 @@ class HolesRenderer:
         if hole_count > 1:
             geometry_indices = [range(0, len(holes_pocket_sketch.Geometry) - 1)]
             holes_pocket_sketch.addRectangularArray(geometry_indices,
-                                                    Vector(DIMS_STUD_SPACING_INNER, 0, 0), False,
+                                                    Vector(DIMS_STUD_SPACING, 0, 0), False,
                                                     hole_count, 1, True)
 
         holes_pocket = self.brick.newObject("PartDesign::Pocket", "holes_pocket")
@@ -153,7 +153,7 @@ class HolesRenderer:
             if hole_count > 1:
                 geometry_indices = [range(0, len(holes_pocket_sketch.Geometry) - 1)]
                 holes_counterbore_pocket_sketch.addRectangularArray(geometry_indices,
-                                                                    Vector(DIMS_STUD_SPACING_INNER, 0, 0), False,
+                                                                    Vector(DIMS_STUD_SPACING, 0, 0), False,
                                                                     hole_count, 1, True)
 
             holes_counterbore_pocket = self.brick.newObject("PartDesign::Pocket", "holes_counterbore_pocket")
@@ -178,8 +178,8 @@ class HolesRenderer:
             edge_names = get_circle_edge_names(self.front_datum_plane, True, 0, holes_counterbore_mirror,
                                                DIMS_TECHNIC_HOLE_COUNTERBORE_RADIUS)
 
-            edge_names.extend(get_circle_edge_names(self.front_datum_plane, False, (2 * DIMS_HALF_STUD_SPACING_OUTER)
-                                                    + ((self.depth - 1) * DIMS_STUD_SPACING_INNER),
+            edge_names.extend(get_circle_edge_names(self.front_datum_plane, False, DIMS_STUD_SPACING
+                                                    + ((self.depth - 1) * DIMS_STUD_SPACING),
                                                     holes_counterbore_mirror, DIMS_TECHNIC_HOLE_COUNTERBORE_RADIUS))
 
             hole_counterbore_fillets = self.brick.newObject("PartDesign::Fillet", "hole_counterbore_fillets")

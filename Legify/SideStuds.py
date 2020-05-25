@@ -37,15 +37,15 @@ class SideStudsRenderer:
         side_studs_outside_pad_sketch.Support = (plane, '')
         side_studs_outside_pad_sketch.MapMode = 'FlatFace'
 
-        add_inner_circle_with_flats_to_sketch(side_studs_outside_pad_sketch, DIMS_STUD_OUTER_RADIUS,
-                                              DIMS_STUD_INNER_RADIUS, DIMS_STUD_FLAT_THICKNESS, False,
-                                              0, DIMS_SIDE_STUD_CENTRE_HEIGHT)
+        add_outer_circle_and_inner_circle_with_flats_to_sketch(side_studs_outside_pad_sketch, DIMS_STUD_OUTER_RADIUS,
+                                                               DIMS_STUD_INNER_RADIUS, DIMS_STUD_FLAT_THICKNESS, True,
+                                                               0, DIMS_SIDE_STUD_CENTRE_HEIGHT)
 
         # create array if needed
         if count > 1:
             geometry_indices = [range(0, len(side_studs_outside_pad_sketch.Geometry) - 1)]
             side_studs_outside_pad_sketch.addRectangularArray(geometry_indices,
-                                                              Vector(DIMS_STUD_SPACING_INNER, 0, 0), False,
+                                                              Vector(DIMS_STUD_SPACING, 0, 0), False,
                                                               count, 1, True)
 
         side_studs_outside_pad = self.brick.newObject("PartDesign::Pad", label + "_side_studs_outside_pad")
@@ -57,16 +57,16 @@ class SideStudsRenderer:
         self.doc.recompute()
 
         # determine the stud outer edges
-        edge_names = get_circle_edge_names(plane, inverted, DIMS_STUD_HEIGHT, side_studs_outside_pad,
-                                           DIMS_STUD_OUTER_RADIUS)
-
-        # side studs outer fillet
-        side_stud_outer_fillets = self.brick.newObject("PartDesign::Fillet", label + "_side_stud_outer_fillets")
-        side_stud_outer_fillets.Radius = DIMS_STUD_FILLET
-        side_stud_outer_fillets.Base = (side_studs_outside_pad, edge_names)
-
-        self.doc.recompute()
-        side_studs_outside_pad_sketch.ViewObject.Visibility = False
+        # edge_names = get_arc_edge_names(plane, inverted, DIMS_STUD_HEIGHT, side_studs_outside_pad,
+        #                                 DIMS_STUD_OUTER_RADIUS)
+        #
+        # # side studs outer fillet
+        # side_stud_outer_fillets = self.brick.newObject("PartDesign::Fillet", label + "_side_stud_outer_fillets")
+        # side_stud_outer_fillets.Radius = DIMS_STUD_FILLET
+        # side_stud_outer_fillets.Base = (side_studs_outside_pad, edge_names)
+        #
+        # self.doc.recompute()
+        # side_studs_outside_pad_sketch.ViewObject.Visibility = False
 
     def _render_side_studs_inside(self, label, plane, count, inverted):
         Console.PrintMessage("render_side_studs_inside({0},{1})\n".format(label, count))
@@ -78,15 +78,15 @@ class SideStudsRenderer:
         side_studs_inside_pocket_sketch.Support = (plane, '')
         side_studs_inside_pocket_sketch.MapMode = 'FlatFace'
 
-        add_inner_circle_with_flats_to_sketch(side_studs_inside_pocket_sketch, DIMS_STUD_OUTER_RADIUS,
-                                              DIMS_STUD_INNER_RADIUS, DIMS_STUD_FLAT_THICKNESS, True,
-                                              0, DIMS_SIDE_STUD_CENTRE_HEIGHT)
+        add_outer_circle_and_inner_circle_with_flats_to_sketch(side_studs_inside_pocket_sketch, DIMS_STUD_OUTER_RADIUS,
+                                                               DIMS_STUD_INNER_RADIUS, DIMS_STUD_FLAT_THICKNESS, False,
+                                                               0, DIMS_SIDE_STUD_CENTRE_HEIGHT)
 
         # create array if needed
         if count > 1:
             geometry_indices = [range(0, len(side_studs_inside_pocket_sketch.Geometry) - 1)]
             side_studs_inside_pocket_sketch.addRectangularArray(geometry_indices,
-                                                                Vector(DIMS_STUD_SPACING_INNER, 0, 0), False,
+                                                                Vector(DIMS_STUD_SPACING, 0, 0), False,
                                                                 count, 1, True)
 
         side_studs_inside_pocket = self.brick.newObject("PartDesign::Pocket", label + "_side_studs_inside_pocket")
