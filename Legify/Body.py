@@ -545,20 +545,20 @@ class BodyRenderer(object):
 
         # Outer circle
         add_circle_to_sketch(tubes_pad_sketch, DIMS_TUBE_OUTER_RADIUS, 0.5 * DIMS_STUD_SPACING,
-                             0.5 * DIMS_STUD_SPACING)
+                             0.5 * DIMS_STUD_SPACING, False)
+
+        self.doc.recompute()
 
         # create array if needed
         if self.width > 2 or self.depth > 2:
             geometry_indices = [range(0, len(tubes_pad_sketch.Geometry) - 1)]
-            if self.width == 2 and self.depth > 2:
-                tubes_pad_sketch.addRectangularArray(geometry_indices, Vector(0, DIMS_STUD_SPACING, 0), False,
-                                                     self.depth - 1, self.width - 1, True)
-            elif self.width > 2 and self.depth == 2:
+            if self.width > 2 and self.depth == 2:
                 tubes_pad_sketch.addRectangularArray(geometry_indices, Vector(DIMS_STUD_SPACING, 0, 0), False,
                                                      self.width - 1, self.depth - 1, True)
             else:
                 tubes_pad_sketch.addRectangularArray(geometry_indices, Vector(0, DIMS_STUD_SPACING, 0), False,
                                                      self.depth - 1, self.width - 1, True)
+        self.doc.recompute()
 
         tubes_pad = self.brick.newObject("PartDesign::Pad", "tubes_pad")
         tubes_pad.Type = PAD_TYPE_UP_TO_FACE
@@ -574,23 +574,22 @@ class BodyRenderer(object):
         tubes_pocket_sketch.Support = (self.top_inside_datum_plane, '')
         tubes_pocket_sketch.MapMode = 'FlatFace'
 
-        add_outer_circle_and_inner_circle_with_flats_to_sketch(tubes_pocket_sketch, DIMS_TUBE_OUTER_RADIUS,
-                                                               DIMS_TUBE_INNER_RADIUS, DIMS_STUD_FLAT_THICKNESS, False,
-                                                               0.5 * DIMS_STUD_SPACING,
-                                                               0.5 * DIMS_STUD_SPACING)
+        add_inner_circle_with_flats_to_sketch(tubes_pocket_sketch, DIMS_TUBE_OUTER_RADIUS,
+                                              DIMS_TUBE_INNER_RADIUS, DIMS_STUD_FLAT_THICKNESS,
+                                              0.5 * DIMS_STUD_SPACING,
+                                              0.5 * DIMS_STUD_SPACING)
+        self.doc.recompute()
 
         # create array if needed
         if self.width > 2 or self.depth > 2:
             geometry_indices = [range(0, len(tubes_pocket_sketch.Geometry) - 1)]
-            if self.width == 2 and self.depth > 2:
-                tubes_pocket_sketch.addRectangularArray(geometry_indices, Vector(0, DIMS_STUD_SPACING, 0), False,
-                                                        self.depth - 1, self.width - 1, True)
-            elif self.width > 2 and self.depth == 2:
+            if self.width > 2 and self.depth == 2:
                 tubes_pocket_sketch.addRectangularArray(geometry_indices, Vector(DIMS_STUD_SPACING, 0, 0), False,
                                                         self.width - 1, self.depth - 1, True)
             else:
                 tubes_pocket_sketch.addRectangularArray(geometry_indices, Vector(0, DIMS_STUD_SPACING, 0), False,
                                                         self.depth - 1, self.width - 1, True)
+        self.doc.recompute()
 
         tubes_pocket = self.brick.newObject("PartDesign::Pocket", "tubes_pocket")
         tubes_pocket.Type = POCKET_TYPE_THROUGH_ALL
@@ -697,12 +696,15 @@ class BodyRenderer(object):
         sticks_pad_sketch.addGeometry(geometries, False)
         sticks_pad_sketch.addConstraint(constraints)
 
+        self.doc.recompute()
+
         if self.width > 1:
             sticks_pad_sketch.addRectangularArray([0], Vector(DIMS_STUD_SPACING, 0, 0), False,
                                                   self.width - 1, 1, True)
         else:
             sticks_pad_sketch.addRectangularArray([0], Vector(0, DIMS_STUD_SPACING, 0), False,
                                                   self.depth - 1, 1, True)
+        self.doc.recompute()
 
         sticks_pad = self.brick.newObject("PartDesign::Pad", "sticks_pad")
         sticks_pad.Type = PAD_TYPE_UP_TO_FACE
@@ -745,12 +747,15 @@ class BodyRenderer(object):
         sticks_pocket_sketch.addGeometry(geometries, False)
         sticks_pocket_sketch.addConstraint(constraints)
 
+        self.doc.recompute()
+
         if self.width > 1:
             sticks_pocket_sketch.addRectangularArray([0], Vector(DIMS_STUD_SPACING, 0, 0), False,
                                                      self.width - 1, 1, True)
         if self.depth > 1:
             sticks_pocket_sketch.addRectangularArray([0], Vector(0, DIMS_STUD_SPACING, 0), False,
                                                      self.depth - 1, 1, True)
+        self.doc.recompute()
 
         sticks_pocket = self.brick.newObject("PartDesign::Pocket", "sticks_pocket")
         sticks_pocket.Type = POCKET_TYPE_THROUGH_ALL

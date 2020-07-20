@@ -121,7 +121,8 @@ class HolesRenderer:
         # TODO: if/else render axle cross-section
         # self._add_axle_hole_sketch(geometries, constraints, hole_offset + (i * DIMS_STUD_SPACING))
         add_circle_to_sketch(holes_pocket_sketch, DIMS_TECHNIC_HOLE_INNER_RADIUS, hole_offset,
-                             DIMS_TECHNIC_HOLE_CENTRE_HEIGHT)
+                             DIMS_TECHNIC_HOLE_CENTRE_HEIGHT, False)
+        self.doc.recompute()
 
         # create array if needed
         if hole_count > 1:
@@ -147,7 +148,8 @@ class HolesRenderer:
             holes_counterbore_pocket_sketch.MapMode = 'FlatFace'
 
             add_circle_to_sketch(holes_counterbore_pocket_sketch, DIMS_TECHNIC_HOLE_COUNTERBORE_RADIUS, hole_offset,
-                                 DIMS_TECHNIC_HOLE_CENTRE_HEIGHT)
+                                 DIMS_TECHNIC_HOLE_CENTRE_HEIGHT, False)
+            self.doc.recompute()
 
             # create array if needed
             if hole_count > 1:
@@ -187,6 +189,7 @@ class HolesRenderer:
             hole_counterbore_fillets.Base = (holes_counterbore_mirror, edge_names)
 
             self.doc.recompute()
+
             holes_counterbore_pocket_sketch.ViewObject.Visibility = False
 
     def render(self, context):

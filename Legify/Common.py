@@ -140,30 +140,88 @@ def yz_plane_bottom_left_vector():
     return Vector(0, -1, -1)
 
 
-def add_circle_to_sketch(sketch, radius, x, y):
-    Console.PrintMessage("add_circle_to_sketch({0})\n".format(radius))
+def add_circle_to_sketch(sketch, radius, x, y, as_arcs):
+    Console.PrintMessage("add_circle_to_sketch({0},{1},{2},{3})\n".format(radius, x, y, as_arcs))
 
     geometries = []
     constraints = []
 
-    geometries.append(Part.Circle())
-    constraints.append(Sketcher.Constraint("Radius", 0, radius))
-    constraints.append(Sketcher.Constraint("DistanceX", SKETCH_GEOMETRY_ORIGIN_INDEX,
-                                           SKETCH_GEOMETRY_VERTEX_START_INDEX, 0,
-                                           SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX, x))
-    constraints.append(Sketcher.Constraint("DistanceY", SKETCH_GEOMETRY_ORIGIN_INDEX,
-                                           SKETCH_GEOMETRY_VERTEX_START_INDEX, 0,
-                                           SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX, y))
+    if as_arcs:
 
-    sketch.addGeometry(geometries, False)
-    sketch.addConstraint(constraints)
+        # Construction line
+        geometries.append(Part.LineSegment(xy_plane_bottom_left_vector(), xy_plane_top_right_vector()))
+        constraints.append(Sketcher.Constraint('Angle', 0, 45 * math.pi / 180))
+        constraints.append(Sketcher.Constraint("DistanceX",
+                                               SKETCH_GEOMETRY_ORIGIN_INDEX, SKETCH_GEOMETRY_VERTEX_START_INDEX,
+                                               0, SKETCH_GEOMETRY_VERTEX_END_INDEX,
+                                               x))
+        constraints.append(Sketcher.Constraint("DistanceY",
+                                               SKETCH_GEOMETRY_ORIGIN_INDEX, SKETCH_GEOMETRY_VERTEX_START_INDEX,
+                                               0, SKETCH_GEOMETRY_VERTEX_END_INDEX,
+                                               y))
+        constraints.append(Sketcher.Constraint("Distance",
+                                               0, SKETCH_GEOMETRY_VERTEX_START_INDEX,
+                                               0, SKETCH_GEOMETRY_VERTEX_END_INDEX,
+                                               radius))
+
+        # Drawn as two arcs instead of one circle so that an edge appears in geometry - this allows
+        # measurement between vertices of distance between arc and flat edge
+        rad1 = 135 * math.pi / 180
+        rad2 = 445 * math.pi / 180
+        rad3 = 45 * math.pi / 180
+        rad4 = 225 * math.pi / 180
+
+        # arcs
+        geometries.append(Part.ArcOfCircle(Part.Circle(Vector(4, 4, 0), Vector(0, 0, 1), radius), rad1, rad2))
+        geometries.append(Part.ArcOfCircle(Part.Circle(Vector(4, 4, 0), Vector(0, 0, 1), radius), rad3, rad4))
+
+        # position arc midpoints
+
+        constraints.append(Sketcher.Constraint('Coincident',
+                                               1, SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX,
+                                               2, SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX))
+        constraints.append(Sketcher.Constraint('Coincident',
+                                               0, SKETCH_GEOMETRY_VERTEX_END_INDEX,
+                                               1, SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX))
+        # join arc endpoints
+        constraints.append(Sketcher.Constraint('Coincident',
+                                               1, SKETCH_GEOMETRY_VERTEX_END_INDEX,
+                                               2, SKETCH_GEOMETRY_VERTEX_START_INDEX))
+        constraints.append(Sketcher.Constraint('Coincident',
+                                               1, SKETCH_GEOMETRY_VERTEX_START_INDEX,
+                                               2, SKETCH_GEOMETRY_VERTEX_END_INDEX))
+        # make arcs symmetric on construction line
+        constraints.append(Sketcher.Constraint('Coincident',
+                                               1, SKETCH_GEOMETRY_VERTEX_START_INDEX,
+                                               0, SKETCH_GEOMETRY_VERTEX_START_INDEX))
+        constraints.append(Sketcher.Constraint('Symmetric',
+                                               1, SKETCH_GEOMETRY_VERTEX_START_INDEX,
+                                               1, SKETCH_GEOMETRY_VERTEX_END_INDEX,
+                                               1, SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX))
+
+        sketch.addGeometry(geometries, False)
+        sketch.addConstraint(constraints)
+
+        # Set construction lines
+        sketch.toggleConstruction(0)
+    else:
+        geometries.append(Part.Circle())
+        constraints.append(Sketcher.Constraint("Radius", 0, radius))
+        constraints.append(Sketcher.Constraint("DistanceX",
+                                               SKETCH_GEOMETRY_ORIGIN_INDEX, SKETCH_GEOMETRY_VERTEX_START_INDEX,
+                                               0, SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX,
+                                               x))
+        constraints.append(Sketcher.Constraint("DistanceY",
+                                               SKETCH_GEOMETRY_ORIGIN_INDEX, SKETCH_GEOMETRY_VERTEX_START_INDEX,
+                                               0, SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX,
+                                               y))
+        sketch.addGeometry(geometries, False)
+        sketch.addConstraint(constraints)
 
 
-def add_outer_circle_and_inner_circle_with_flats_to_sketch(sketch, outer_radius, inner_radius, flat_thickness,
-                                                           outer_circle_is_required, x_offset, y_offset):
-    Console.PrintMessage("add_outer_circle_and_inner_circle_with_flats_to_sketch({0},{1},{2},{3},{4},{5})\n"
-                         .format(outer_radius, inner_radius, flat_thickness, outer_circle_is_required,
-                                 x_offset, y_offset))
+def add_inner_circle_with_flats_to_sketch(sketch, outer_radius, inner_radius, flat_thickness, x_offset, y_offset):
+    Console.PrintMessage("add_inner_circle_with_flats_to_sketch({0},{1},{2},{3},{4})\n"
+                         .format(outer_radius, inner_radius, flat_thickness, x_offset, y_offset))
 
     geometries = []
     constraints = []
@@ -210,6 +268,39 @@ def add_outer_circle_and_inner_circle_with_flats_to_sketch(sketch, outer_radius,
     geometries.append(Part.ArcOfCircle(Part.Circle(Vector(4, 4, 0), Vector(0, 0, 1), inner_radius), rad5, rad6))
     geometries.append(Part.ArcOfCircle(Part.Circle(Vector(4, 4, 0), Vector(0, 0, 1), inner_radius), rad7, rad8))
 
+    # Lines equal
+    constraints.append(Sketcher.Constraint('Equal', 1, 2))
+    constraints.append(Sketcher.Constraint('Equal', 1, 3))
+    constraints.append(Sketcher.Constraint('Equal', 1, 4))
+
+    # Lines parallel/perpendicular to construction line
+    # Use angle constrain instead of parallel/perpendicular so that they
+    # can't 'flip' and fail to resolve the constraints
+    constraints.append(Sketcher.Constraint('Angle', 1, 135 * math.pi / 180))
+    constraints.append(Sketcher.Constraint('Angle', 2, 45 * math.pi / 180))
+    constraints.append(Sketcher.Constraint('Angle', 3, -45 * math.pi / 180))
+    constraints.append(Sketcher.Constraint('Angle', 4, -135 * math.pi / 180))
+
+    # All arcs centred
+    constraints.append(Sketcher.Constraint('Coincident',
+                                           5, SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX,
+                                           0, SKETCH_GEOMETRY_VERTEX_END_INDEX))
+    constraints.append(Sketcher.Constraint('Coincident',
+                                           6, SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX,
+                                           0, SKETCH_GEOMETRY_VERTEX_END_INDEX))
+    constraints.append(Sketcher.Constraint('Coincident',
+                                           7, SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX,
+                                           0, SKETCH_GEOMETRY_VERTEX_END_INDEX))
+    constraints.append(Sketcher.Constraint('Coincident',
+                                           8, SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX,
+                                           0, SKETCH_GEOMETRY_VERTEX_END_INDEX))
+
+    # All equal radius arcs
+    constraints.append(Sketcher.Constraint('Radius', 5, inner_radius))
+    constraints.append(Sketcher.Constraint('Equal', 5, 6))
+    constraints.append(Sketcher.Constraint('Equal', 5, 7))
+    constraints.append(Sketcher.Constraint('Equal', 5, 8))
+
     # Link arcs to segments
     constraints.append(Sketcher.Constraint('Coincident',
                                            1, SKETCH_GEOMETRY_VERTEX_START_INDEX,
@@ -236,75 +327,8 @@ def add_outer_circle_and_inner_circle_with_flats_to_sketch(sketch, outer_radius,
                                            4, SKETCH_GEOMETRY_VERTEX_END_INDEX,
                                            8, SKETCH_GEOMETRY_VERTEX_END_INDEX))
 
-    # Lines equal and parallel/perpendicular
-    constraints.append(Sketcher.Constraint('Equal', 1, 2))
-    constraints.append(Sketcher.Constraint('Equal', 1, 3))
-    constraints.append(Sketcher.Constraint('Equal', 1, 4))
-    constraints.append(Sketcher.Constraint('Parallel', 1, 3))
-    constraints.append(Sketcher.Constraint('Parallel', 2, 4))
-    constraints.append(Sketcher.Constraint('Perpendicular', 1, 2))
-
-    # Parallel to tangent line as
-    constraints.append(Sketcher.Constraint('Parallel', 0, 2))
-
-    # All arcs centred
-    constraints.append(Sketcher.Constraint('Coincident',
-                                           5, SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX,
-                                           0, SKETCH_GEOMETRY_VERTEX_END_INDEX))
-    constraints.append(Sketcher.Constraint('Coincident',
-                                           6, SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX,
-                                           0, SKETCH_GEOMETRY_VERTEX_END_INDEX))
-    constraints.append(Sketcher.Constraint('Coincident',
-                                           7, SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX,
-                                           0, SKETCH_GEOMETRY_VERTEX_END_INDEX))
-    constraints.append(Sketcher.Constraint('Coincident',
-                                           8, SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX,
-                                           0, SKETCH_GEOMETRY_VERTEX_END_INDEX))
-
-    # All equal radius arcs
-    constraints.append(Sketcher.Constraint('Radius', 5, inner_radius))
-    constraints.append(Sketcher.Constraint('Equal', 5, 6))
-    constraints.append(Sketcher.Constraint('Equal', 5, 7))
-    constraints.append(Sketcher.Constraint('Equal', 5, 8))
-
     # The critical measurement: distance to end of construction line
     constraints.append(Sketcher.Constraint('Distance', 0, SKETCH_GEOMETRY_VERTEX_START_INDEX, 1, flat_thickness))
-
-    # Outer circle
-    if outer_circle_is_required:
-
-        # Drawn as two arcs instead of one circle so that an edge appears in geometry - this allows
-        # measurement between vertices of distance between arc and flat edge
-        rad1 = 135 * math.pi / 180
-        rad2 = 445 * math.pi / 180
-        rad3 = 45 * math.pi / 180
-        rad4 = 225 * math.pi / 180
-
-        # arcs
-        geometries.append(Part.ArcOfCircle(Part.Circle(Vector(4, 4, 0), Vector(0, 0, 1), outer_radius), rad1, rad2))
-        geometries.append(Part.ArcOfCircle(Part.Circle(Vector(4, 4, 0), Vector(0, 0, 1), outer_radius), rad3, rad4))
-
-        # join arc endpoints
-        constraints.append(Sketcher.Constraint('Coincident',
-                                               9, SKETCH_GEOMETRY_VERTEX_END_INDEX,
-                                               10, SKETCH_GEOMETRY_VERTEX_START_INDEX))
-        constraints.append(Sketcher.Constraint('Coincident',
-                                               9, SKETCH_GEOMETRY_VERTEX_START_INDEX,
-                                               10, SKETCH_GEOMETRY_VERTEX_END_INDEX))
-        constraints.append(Sketcher.Constraint('Coincident',
-                                               0, SKETCH_GEOMETRY_VERTEX_START_INDEX,
-                                               9, SKETCH_GEOMETRY_VERTEX_START_INDEX))
-        constraints.append(Sketcher.Constraint('Symmetric',
-                                               9, SKETCH_GEOMETRY_VERTEX_START_INDEX,
-                                               9, SKETCH_GEOMETRY_VERTEX_END_INDEX,
-                                               5, SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX))
-        # position arc midpoints
-        constraints.append(Sketcher.Constraint('Coincident',
-                                               0, SKETCH_GEOMETRY_VERTEX_END_INDEX,
-                                               9, SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX))
-        constraints.append(Sketcher.Constraint('Coincident',
-                                               0, SKETCH_GEOMETRY_VERTEX_END_INDEX,
-                                               10, SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX))
 
     sketch.addGeometry(geometries, False)
     sketch.addConstraint(constraints)
@@ -314,8 +338,7 @@ def add_outer_circle_and_inner_circle_with_flats_to_sketch(sketch, outer_radius,
 
 
 def get_circle_edge_names(plane, inverted, offset, feature, radius):
-    Console.PrintMessage("get_circle_edge_names({0},{1},{2},{3},{4})\n"
-                         .format(plane, inverted, offset, feature, radius))
+    Console.PrintMessage("get_circle_edge_names({0},{1},{2},{3})\n".format(plane, inverted, offset, radius))
 
     plane_normal = plane.Shape.normalAt(0, 0)
     plane_normal = plane_normal if inverted else plane_normal.negative()
@@ -366,8 +389,7 @@ def get_circle_edge_names(plane, inverted, offset, feature, radius):
 
 
 def get_arc_edge_names(plane, inverted, offset, feature, radius):
-    Console.PrintMessage("get_arc_edge_names({0},{1},{2},{3},{4})\n"
-                         .format(plane, inverted, offset, feature, radius))
+    Console.PrintMessage("get_arc_edge_names({0},{1},{2})\n".format(inverted, offset, radius))
 
     plane_normal = plane.Shape.normalAt(0, 0)
     plane_normal = plane_normal if inverted else plane_normal.negative()
@@ -382,36 +404,33 @@ def get_arc_edge_names(plane, inverted, offset, feature, radius):
         face_normal = face.normalAt(0, 0)
         if face_normal.isEqual(plane_normal, 1e-7):
 
-            # desired faces have am arc edge
+            # desired faces have an arc edge
             for j in range(0, len(face.Edges)):
                 edge = face.Edges[j]
 
-                # arcs have two vertices
-                if len(edge.Vertexes) == 2:
+                # arcs have two vertices and arc needs to have a curve with desired radius
+                if len(edge.Vertexes) == 2 and hasattr(edge, 'Curve') and hasattr(edge.Curve, 'Radius')\
+                        and abs(edge.Curve.Radius - radius) < 1e-4:
 
-                    # arc needs to have a curve with desired radius
-                    if hasattr(edge, 'Curve') and hasattr(edge.Curve, 'Radius') and edge.Curve.Radius == radius:
+                    # face with negative offset along normal lies in plane
+                    offset_centre = edge.Vertexes[0].Point - (offset * face_normal)
 
-                        # face with negative offset along normal lies in plane
-                        offset_centre = edge.Vertexes[0].Point - (offset * face_normal)
-
-                        if plane.Shape.isInside(offset_centre, 1e-7, True):
-                            potential_edges.append(edge)
+                    if plane.Shape.isInside(offset_centre, 1e-6, True):
+                        potential_edges.append(edge)
 
     for i in range(0, len(feature.Shape.Edges)):
         edge = feature.Shape.Edges[i]
 
-        # arcs have two vertices
-        if len(edge.Vertexes) == 2:
+        # arcs have two vertices and arc needs to have a curve with desired radius
+        if len(edge.Vertexes) == 2 and hasattr(edge, 'Curve') and hasattr(edge.Curve, 'Radius')\
+                and abs(edge.Curve.Radius - radius) < 1e-4:
 
-            # arc needs to have a curve with desired radius
-            if hasattr(edge, 'Curve') and hasattr(edge.Curve, 'Radius') and edge.Curve.Radius == radius:
-
-                # arc needs to be in potential edges
-                for j in range(0, len(potential_edges)):
-                    potential_edge = potential_edges[j]
-                    c1 = potential_edge.Curve
-                    c2 = edge.Curve
-                    if c1.Center == c2.Center and c1.Axis == c2.Axis:
-                        edge_names.append("Edge" + repr(i + 1))
+            # arc needs to be in potential edges
+            for j in range(0, len(potential_edges)):
+                potential_edge = potential_edges[j]
+                c1 = potential_edge.Curve
+                c2 = edge.Curve
+                if c1.Center == c2.Center and c1.Axis == c2.Axis:
+                    edge_names.append("Edge" + repr(i + 1))
+                    break
     return edge_names
