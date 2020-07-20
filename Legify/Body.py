@@ -150,7 +150,7 @@ class BodyRenderer(object):
         segment_count = len(geometries)
 
         # offset from origin for this rib
-        rib_x_offset = (tube_index - 1) * DIMS_STUD_SPACING_INNER + (DIMS_STUD_SPACING_INNER - rib_thickness) / 2
+        rib_x_offset = (tube_index - 1) * DIMS_STUD_SPACING + (DIMS_STUD_SPACING - rib_thickness) / 2
 
         fillet_radius = rib_thickness / 2
 
@@ -233,16 +233,16 @@ class BodyRenderer(object):
 
             # Half stud offsets from origin
             Sketcher.Constraint("DistanceX", 0, SKETCH_GEOMETRY_VERTEX_START_INDEX, SKETCH_GEOMETRY_ORIGIN_INDEX,
-                                SKETCH_GEOMETRY_VERTEX_START_INDEX, DIMS_HALF_STUD_SPACING_OUTER),
+                                SKETCH_GEOMETRY_VERTEX_START_INDEX, DIMS_STUD_SPACING / 2),
             Sketcher.Constraint("DistanceY", 0, SKETCH_GEOMETRY_VERTEX_START_INDEX, SKETCH_GEOMETRY_ORIGIN_INDEX,
-                                SKETCH_GEOMETRY_VERTEX_START_INDEX, DIMS_HALF_STUD_SPACING_OUTER),
+                                SKETCH_GEOMETRY_VERTEX_START_INDEX, DIMS_STUD_SPACING / 2),
 
             # Width
             Sketcher.Constraint("DistanceX", 0, SKETCH_GEOMETRY_VERTEX_START_INDEX, 0, SKETCH_GEOMETRY_VERTEX_END_INDEX,
-                                (self.width - 1) * DIMS_STUD_SPACING_INNER + (2 * DIMS_HALF_STUD_SPACING_OUTER)),
+                                (self.width - 1) * DIMS_STUD_SPACING + DIMS_STUD_SPACING),
             # Depth
             Sketcher.Constraint("DistanceY", 1, SKETCH_GEOMETRY_VERTEX_START_INDEX, 1, SKETCH_GEOMETRY_VERTEX_END_INDEX,
-                                (self.depth - 1) * DIMS_STUD_SPACING_INNER + (2 * DIMS_HALF_STUD_SPACING_OUTER))
+                                (self.depth - 1) * DIMS_STUD_SPACING + DIMS_STUD_SPACING)
         ])
 
         body_pad = self.brick.newObject("PartDesign::Pad", "body_pad")
@@ -284,7 +284,7 @@ class BodyRenderer(object):
             # complex rectangle with ribs
             # First horizontal => 1st half stud
             self._add_horizontal_sketch_segment(geometries, constraints,
-                                                DIMS_HALF_STUD_SPACING_OUTER - DIMS_RIBBED_SIDE_THICKNESS
+                                                (DIMS_STUD_SPACING / 2) - DIMS_RIBBED_SIDE_THICKNESS
                                                 - (DIMS_SIDE_RIB_WIDTH / 2),
                                                 xy_plane_top_left_vector(), xy_plane_top_right_vector(),
                                                 False)
@@ -292,7 +292,7 @@ class BodyRenderer(object):
             # => N-1 studs
             for i in range(0, self.width - 1):
                 self._add_horizontal_sketch_segment_with_rib(geometries, constraints,
-                                                             DIMS_STUD_SPACING_INNER,
+                                                             DIMS_STUD_SPACING,
                                                              xy_plane_top_left_vector(), xy_plane_top_right_vector(),
                                                              xy_plane_top_right_vector(),
                                                              xy_plane_bottom_right_vector(),
@@ -300,7 +300,7 @@ class BodyRenderer(object):
 
             # => Last half stud
             self._add_horizontal_sketch_segment_with_rib(geometries, constraints,
-                                                         DIMS_HALF_STUD_SPACING_OUTER - DIMS_RIBBED_SIDE_THICKNESS
+                                                         (DIMS_STUD_SPACING / 2) - DIMS_RIBBED_SIDE_THICKNESS
                                                          + (DIMS_SIDE_RIB_WIDTH / 2),
                                                          xy_plane_top_left_vector(), xy_plane_top_right_vector(),
                                                          xy_plane_top_right_vector(), xy_plane_bottom_right_vector(),
@@ -308,7 +308,7 @@ class BodyRenderer(object):
 
             # First vertical => 1st half stud
             self._add_vertical_sketch_segment(geometries, constraints,
-                                              DIMS_HALF_STUD_SPACING_OUTER - DIMS_RIBBED_SIDE_THICKNESS
+                                              (DIMS_STUD_SPACING / 2) - DIMS_RIBBED_SIDE_THICKNESS
                                               - (DIMS_SIDE_RIB_WIDTH / 2),
                                               xy_plane_top_right_vector(), xy_plane_bottom_right_vector(),
                                               False)
@@ -316,7 +316,7 @@ class BodyRenderer(object):
             # => N-1 studs
             for i in range(0, self.depth - 1):
                 self._add_vertical_sketch_segment_with_rib(geometries, constraints,
-                                                           DIMS_STUD_SPACING_INNER,
+                                                           DIMS_STUD_SPACING,
                                                            xy_plane_top_right_vector(), xy_plane_bottom_right_vector(),
                                                            xy_plane_bottom_right_vector(),
                                                            xy_plane_bottom_left_vector(),
@@ -324,7 +324,7 @@ class BodyRenderer(object):
 
             # => Last half stud
             self._add_vertical_sketch_segment_with_rib(geometries, constraints,
-                                                       DIMS_HALF_STUD_SPACING_OUTER - DIMS_RIBBED_SIDE_THICKNESS
+                                                       (DIMS_STUD_SPACING / 2) - DIMS_RIBBED_SIDE_THICKNESS
                                                        + (DIMS_SIDE_RIB_WIDTH / 2),
                                                        xy_plane_top_right_vector(), xy_plane_bottom_right_vector(),
                                                        xy_plane_bottom_right_vector(), xy_plane_bottom_left_vector(),
@@ -332,7 +332,7 @@ class BodyRenderer(object):
 
             # Second horizontal => 1st half stud
             self._add_horizontal_sketch_segment(geometries, constraints,
-                                                DIMS_HALF_STUD_SPACING_OUTER - DIMS_RIBBED_SIDE_THICKNESS
+                                                (DIMS_STUD_SPACING / 2) - DIMS_RIBBED_SIDE_THICKNESS
                                                 - (DIMS_SIDE_RIB_WIDTH / 2),
                                                 xy_plane_top_left_vector(), xy_plane_top_right_vector(),
                                                 True)
@@ -340,7 +340,7 @@ class BodyRenderer(object):
             # => N-1 studs
             for i in range(0, self.width - 1):
                 self._add_horizontal_sketch_segment_with_rib(geometries, constraints,
-                                                             DIMS_STUD_SPACING_INNER,
+                                                             DIMS_STUD_SPACING,
                                                              xy_plane_top_left_vector(), xy_plane_top_right_vector(),
                                                              xy_plane_top_right_vector(),
                                                              xy_plane_bottom_right_vector(),
@@ -348,7 +348,7 @@ class BodyRenderer(object):
 
             # => Last half stud
             self._add_horizontal_sketch_segment_with_rib(geometries, constraints,
-                                                         DIMS_HALF_STUD_SPACING_OUTER - DIMS_RIBBED_SIDE_THICKNESS
+                                                         (DIMS_STUD_SPACING / 2) - DIMS_RIBBED_SIDE_THICKNESS
                                                          + (DIMS_SIDE_RIB_WIDTH / 2),
                                                          xy_plane_top_left_vector(), xy_plane_top_right_vector(),
                                                          xy_plane_top_right_vector(), xy_plane_bottom_right_vector(),
@@ -356,7 +356,7 @@ class BodyRenderer(object):
 
             # Second vertical => 1st half stud
             self._add_vertical_sketch_segment(geometries, constraints,
-                                              DIMS_HALF_STUD_SPACING_OUTER - DIMS_RIBBED_SIDE_THICKNESS
+                                              (DIMS_STUD_SPACING / 2) - DIMS_RIBBED_SIDE_THICKNESS
                                               - (DIMS_SIDE_RIB_WIDTH / 2),
                                               xy_plane_top_right_vector(), xy_plane_bottom_right_vector(),
                                               True)
@@ -364,7 +364,7 @@ class BodyRenderer(object):
             # => N-1 studs
             for i in range(0, self.depth - 1):
                 self._add_vertical_sketch_segment_with_rib(geometries, constraints,
-                                                           DIMS_STUD_SPACING_INNER,
+                                                           DIMS_STUD_SPACING,
                                                            xy_plane_top_right_vector(), xy_plane_bottom_right_vector(),
                                                            xy_plane_bottom_right_vector(),
                                                            xy_plane_bottom_left_vector(),
@@ -372,7 +372,7 @@ class BodyRenderer(object):
 
             # => Last half stud
             self._add_vertical_sketch_segment_with_rib(geometries, constraints,
-                                                       DIMS_HALF_STUD_SPACING_OUTER - DIMS_RIBBED_SIDE_THICKNESS
+                                                       (DIMS_STUD_SPACING / 2) - DIMS_RIBBED_SIDE_THICKNESS
                                                        + (DIMS_SIDE_RIB_WIDTH / 2),
                                                        xy_plane_top_right_vector(), xy_plane_bottom_right_vector(),
                                                        xy_plane_bottom_right_vector(), xy_plane_bottom_left_vector(),
@@ -381,10 +381,10 @@ class BodyRenderer(object):
             # Half stud offsets from origin (-1, 1 chooses the origin point)
             constraints.append(Sketcher.Constraint("DistanceX", 0, SKETCH_GEOMETRY_VERTEX_START_INDEX, -1,
                                                    SKETCH_GEOMETRY_VERTEX_START_INDEX,
-                                                   DIMS_HALF_STUD_SPACING_OUTER - DIMS_RIBBED_SIDE_THICKNESS))
+                                                   (DIMS_STUD_SPACING / 2) - DIMS_RIBBED_SIDE_THICKNESS))
             constraints.append(Sketcher.Constraint("DistanceY", 0, SKETCH_GEOMETRY_VERTEX_START_INDEX, -1,
                                                    SKETCH_GEOMETRY_VERTEX_START_INDEX,
-                                                   DIMS_HALF_STUD_SPACING_OUTER - DIMS_RIBBED_SIDE_THICKNESS))
+                                                   (DIMS_STUD_SPACING / 2) - DIMS_RIBBED_SIDE_THICKNESS))
         else:
 
             # simple rectangle
@@ -413,23 +413,23 @@ class BodyRenderer(object):
             # Width
             constraints.append(Sketcher.Constraint("DistanceX", 0, SKETCH_GEOMETRY_VERTEX_START_INDEX, 0,
                                                    SKETCH_GEOMETRY_VERTEX_END_INDEX,
-                                                   (self.width - 1) * DIMS_STUD_SPACING_INNER
-                                                   + (2 * DIMS_HALF_STUD_SPACING_OUTER)
+                                                   (self.width - 1) * DIMS_STUD_SPACING
+                                                   + DIMS_STUD_SPACING
                                                    - (2 * DIMS_FLAT_SIDE_THICKNESS)))
             # Depth
             constraints.append(Sketcher.Constraint("DistanceY", 1, SKETCH_GEOMETRY_VERTEX_START_INDEX, 1,
                                                    SKETCH_GEOMETRY_VERTEX_END_INDEX,
-                                                   (self.depth - 1) * DIMS_STUD_SPACING_INNER
-                                                   + (2 * DIMS_HALF_STUD_SPACING_OUTER)
+                                                   (self.depth - 1) * DIMS_STUD_SPACING
+                                                   + DIMS_STUD_SPACING
                                                    - (2 * DIMS_FLAT_SIDE_THICKNESS)))
 
             # Half stud offsets from origin
             constraints.append(Sketcher.Constraint("DistanceX", 0, SKETCH_GEOMETRY_VERTEX_START_INDEX,
                                                    SKETCH_GEOMETRY_ORIGIN_INDEX, SKETCH_GEOMETRY_VERTEX_START_INDEX,
-                                                   DIMS_HALF_STUD_SPACING_OUTER - DIMS_FLAT_SIDE_THICKNESS))
+                                                   (DIMS_STUD_SPACING / 2) - DIMS_FLAT_SIDE_THICKNESS))
             constraints.append(Sketcher.Constraint("DistanceY", 0, SKETCH_GEOMETRY_VERTEX_START_INDEX,
                                                    SKETCH_GEOMETRY_ORIGIN_INDEX, SKETCH_GEOMETRY_VERTEX_START_INDEX,
-                                                   DIMS_HALF_STUD_SPACING_OUTER - DIMS_FLAT_SIDE_THICKNESS))
+                                                   (DIMS_STUD_SPACING / 2) - DIMS_FLAT_SIDE_THICKNESS))
 
         body_pocket_sketch.addGeometry(geometries, False)
         body_pocket_sketch.addConstraint(constraints)
@@ -544,21 +544,21 @@ class BodyRenderer(object):
                                                Rotation(Vector(0, 0, 1), 0))
 
         # Outer circle
-        add_circle_to_sketch(tubes_pad_sketch, DIMS_TUBE_OUTER_RADIUS, 0.5 * DIMS_STUD_SPACING_INNER,
-                             0.5 * DIMS_STUD_SPACING_INNER)
+        add_circle_to_sketch(tubes_pad_sketch, DIMS_TUBE_OUTER_RADIUS, 0.5 * DIMS_STUD_SPACING,
+                             0.5 * DIMS_STUD_SPACING, False)
+
+        self.doc.recompute()
 
         # create array if needed
         if self.width > 2 or self.depth > 2:
             geometry_indices = [range(0, len(tubes_pad_sketch.Geometry) - 1)]
-            if self.width == 2 and self.depth > 2:
-                tubes_pad_sketch.addRectangularArray(geometry_indices, Vector(0, DIMS_STUD_SPACING_INNER, 0), False,
-                                                     self.depth - 1, self.width - 1, True)
-            elif self.width > 2 and self.depth == 2:
-                tubes_pad_sketch.addRectangularArray(geometry_indices, Vector(DIMS_STUD_SPACING_INNER, 0, 0), False,
+            if self.width > 2 and self.depth == 2:
+                tubes_pad_sketch.addRectangularArray(geometry_indices, Vector(DIMS_STUD_SPACING, 0, 0), False,
                                                      self.width - 1, self.depth - 1, True)
             else:
-                tubes_pad_sketch.addRectangularArray(geometry_indices, Vector(0, DIMS_STUD_SPACING_INNER, 0), False,
+                tubes_pad_sketch.addRectangularArray(geometry_indices, Vector(0, DIMS_STUD_SPACING, 0), False,
                                                      self.depth - 1, self.width - 1, True)
+        self.doc.recompute()
 
         tubes_pad = self.brick.newObject("PartDesign::Pad", "tubes_pad")
         tubes_pad.Type = PAD_TYPE_UP_TO_FACE
@@ -574,22 +574,22 @@ class BodyRenderer(object):
         tubes_pocket_sketch.Support = (self.top_inside_datum_plane, '')
         tubes_pocket_sketch.MapMode = 'FlatFace'
 
-        add_inner_circle_with_flats_to_sketch(tubes_pocket_sketch, DIMS_TUBE_OUTER_RADIUS, DIMS_TUBE_INNER_RADIUS,
-                                              DIMS_STUD_FLAT_THICKNESS, True, 0.5 * DIMS_STUD_SPACING_INNER,
-                                              0.5 * DIMS_STUD_SPACING_INNER)
+        add_inner_circle_with_flats_to_sketch(tubes_pocket_sketch, DIMS_TUBE_OUTER_RADIUS,
+                                              DIMS_TUBE_INNER_RADIUS, DIMS_STUD_FLAT_THICKNESS,
+                                              0.5 * DIMS_STUD_SPACING,
+                                              0.5 * DIMS_STUD_SPACING)
+        self.doc.recompute()
 
         # create array if needed
         if self.width > 2 or self.depth > 2:
             geometry_indices = [range(0, len(tubes_pocket_sketch.Geometry) - 1)]
-            if self.width == 2 and self.depth > 2:
-                tubes_pocket_sketch.addRectangularArray(geometry_indices, Vector(0, DIMS_STUD_SPACING_INNER, 0), False,
-                                                        self.depth - 1, self.width - 1, True)
-            elif self.width > 2 and self.depth == 2:
-                tubes_pocket_sketch.addRectangularArray(geometry_indices, Vector(DIMS_STUD_SPACING_INNER, 0, 0), False,
+            if self.width > 2 and self.depth == 2:
+                tubes_pocket_sketch.addRectangularArray(geometry_indices, Vector(DIMS_STUD_SPACING, 0, 0), False,
                                                         self.width - 1, self.depth - 1, True)
             else:
-                tubes_pocket_sketch.addRectangularArray(geometry_indices, Vector(0, DIMS_STUD_SPACING_INNER, 0), False,
+                tubes_pocket_sketch.addRectangularArray(geometry_indices, Vector(0, DIMS_STUD_SPACING, 0), False,
                                                         self.depth - 1, self.width - 1, True)
+        self.doc.recompute()
 
         tubes_pocket = self.brick.newObject("PartDesign::Pocket", "tubes_pocket")
         tubes_pocket.Type = POCKET_TYPE_THROUGH_ALL
@@ -681,7 +681,7 @@ class BodyRenderer(object):
         if self.width > 1:
             constraints.append(Sketcher.Constraint("DistanceX", SKETCH_GEOMETRY_ORIGIN_INDEX,
                                                    SKETCH_GEOMETRY_VERTEX_START_INDEX, 0,
-                                                   SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX, 0.5 * DIMS_STUD_SPACING_INNER))
+                                                   SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX, 0.5 * DIMS_STUD_SPACING))
             constraints.append(Sketcher.Constraint("DistanceY", SKETCH_GEOMETRY_ORIGIN_INDEX,
                                                    SKETCH_GEOMETRY_VERTEX_START_INDEX, 0,
                                                    SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX, 0))
@@ -691,17 +691,20 @@ class BodyRenderer(object):
                                                    SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX, 0))
             constraints.append(Sketcher.Constraint("DistanceY", SKETCH_GEOMETRY_ORIGIN_INDEX,
                                                    SKETCH_GEOMETRY_VERTEX_START_INDEX, 0,
-                                                   SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX, 0.5 * DIMS_STUD_SPACING_INNER))
+                                                   SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX, 0.5 * DIMS_STUD_SPACING))
 
         sticks_pad_sketch.addGeometry(geometries, False)
         sticks_pad_sketch.addConstraint(constraints)
 
+        self.doc.recompute()
+
         if self.width > 1:
-            sticks_pad_sketch.addRectangularArray([0], Vector(DIMS_STUD_SPACING_INNER, 0, 0), False,
+            sticks_pad_sketch.addRectangularArray([0], Vector(DIMS_STUD_SPACING, 0, 0), False,
                                                   self.width - 1, 1, True)
         else:
-            sticks_pad_sketch.addRectangularArray([0], Vector(0, DIMS_STUD_SPACING_INNER, 0), False,
+            sticks_pad_sketch.addRectangularArray([0], Vector(0, DIMS_STUD_SPACING, 0), False,
                                                   self.depth - 1, 1, True)
+        self.doc.recompute()
 
         sticks_pad = self.brick.newObject("PartDesign::Pad", "sticks_pad")
         sticks_pad.Type = PAD_TYPE_UP_TO_FACE
@@ -728,7 +731,7 @@ class BodyRenderer(object):
             constraints.append(Sketcher.Constraint("DistanceX", SKETCH_GEOMETRY_ORIGIN_INDEX,
                                                    SKETCH_GEOMETRY_VERTEX_START_INDEX, 0,
                                                    SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX,
-                                                   0.5 * DIMS_STUD_SPACING_INNER))
+                                                   0.5 * DIMS_STUD_SPACING))
             constraints.append(Sketcher.Constraint("DistanceY", SKETCH_GEOMETRY_ORIGIN_INDEX,
                                                    SKETCH_GEOMETRY_VERTEX_START_INDEX, 0,
                                                    SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX, 0))
@@ -739,17 +742,20 @@ class BodyRenderer(object):
             constraints.append(Sketcher.Constraint("DistanceY", SKETCH_GEOMETRY_ORIGIN_INDEX,
                                                    SKETCH_GEOMETRY_VERTEX_START_INDEX, 0,
                                                    SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX,
-                                                   0.5 * DIMS_STUD_SPACING_INNER))
+                                                   0.5 * DIMS_STUD_SPACING))
 
         sticks_pocket_sketch.addGeometry(geometries, False)
         sticks_pocket_sketch.addConstraint(constraints)
 
+        self.doc.recompute()
+
         if self.width > 1:
-            sticks_pocket_sketch.addRectangularArray([0], Vector(DIMS_STUD_SPACING_INNER, 0, 0), False,
+            sticks_pocket_sketch.addRectangularArray([0], Vector(DIMS_STUD_SPACING, 0, 0), False,
                                                      self.width - 1, 1, True)
         if self.depth > 1:
-            sticks_pocket_sketch.addRectangularArray([0], Vector(0, DIMS_STUD_SPACING_INNER, 0), False,
+            sticks_pocket_sketch.addRectangularArray([0], Vector(0, DIMS_STUD_SPACING, 0), False,
                                                      self.depth - 1, 1, True)
+        self.doc.recompute()
 
         sticks_pocket = self.brick.newObject("PartDesign::Pocket", "sticks_pocket")
         sticks_pocket.Type = POCKET_TYPE_THROUGH_ALL
