@@ -545,7 +545,7 @@ class BodyRenderer(object):
 
         # Outer circle
         add_circle_to_sketch(tubes_pad_sketch, DIMS_TUBE_OUTER_RADIUS, 0.5 * DIMS_STUD_SPACING,
-                             0.5 * DIMS_STUD_SPACING, False)
+                             0.5 * DIMS_STUD_SPACING, True)
 
         self.doc.recompute()
 

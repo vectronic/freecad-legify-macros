@@ -64,6 +64,10 @@ to create parametric models in FreeCAD is quite possibly insane!
 
 ![Sketch](images/sketch.png "Sketch")
 
+![Technical Drawing 1](images/technical_drawing_1.png "Technical Drawing 1")
+
+![Technical Drawing 2](images/technical_drawing_2.png "Technical Drawing 2")
+
 ## Credit
 
 Initial drawing and dimensions used as reference for this work was done by [Nick Turo-Shields](https://grabcad.com/library/2x4-lego-brick-1)
