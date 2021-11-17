@@ -49,6 +49,8 @@ class BrickContext:
         self.depth_mirror_datum_plane = None
 
         self.xz_plane = None
+        self.yz_plane = None
+        self.xy_plane = None
 
         self.doc = None
         self.brick = None
@@ -217,16 +219,16 @@ class BrickRenderer:
 
         offset = bool(pins["offset"])
 
-        if offset and (left or right) and self.width == 1:
+        if offset and (left or right) and self.depth == 1:
 
             Console.PrintMessage("pins[\"offset\"] set to False as "
-                                 "Left or Right are True and dimensions[\"width\"] == 1\n")
+                                 "Left or Right are True and dimensions[\"depth\"] == 1\n")
             style = PinStyle.NONE
 
-        if offset and (front or back) and self.depth == 1:
+        if offset and (front or back) and self.width == 1:
 
             Console.PrintMessage("pins[\"offset\"] set to False as "
-                                 "Front or Back are True and dimensions[\"depth\"] == 1\n")
+                                 "Front or Back are True and dimensions[\"width\"] == 1\n")
             style = PinStyle.NONE
 
         self.pins_style = style
@@ -321,7 +323,8 @@ class BrickRenderer:
         front_datum_plane.MapReversed = False
         front_datum_plane.Support = [(context.brick.Origin.OriginFeatures[ORIGIN_XZ_PLANE_INDEX], '')]
         front_datum_plane.MapMode = 'FlatFace'
-        front_datum_plane.AttachmentOffset = Placement(Vector(0, 0, DIMS_STUD_SPACING / 2), Rotation(0, 0, 0))
+        front_datum_plane.AttachmentOffset = Placement(
+            Vector(0, 0, (DIMS_STUD_SPACING / 2) - DIMS_BRICK_OUTER_REDUCTION), Rotation(0, 0, 0))
         front_datum_plane.ViewObject.Visibility = False
         context.front_datum_plane = front_datum_plane
 
@@ -331,7 +334,8 @@ class BrickRenderer:
         back_datum_plane.Support = [(context.brick.Origin.OriginFeatures[ORIGIN_XZ_PLANE_INDEX], '')]
         back_datum_plane.MapMode = 'FlatFace'
         back_datum_plane.AttachmentOffset = Placement(
-            Vector(0, 0, -1 * ((DIMS_STUD_SPACING / 2) + (DIMS_STUD_SPACING * (context.depth - 1)))),
+            Vector(0, 0, -1 *
+                   ((DIMS_STUD_SPACING / 2) + (DIMS_STUD_SPACING * (context.depth - 1)) - DIMS_BRICK_OUTER_REDUCTION)),
             Rotation(0, 0, 0))
         back_datum_plane.ViewObject.Visibility = False
         context.back_datum_plane = back_datum_plane
@@ -341,8 +345,9 @@ class BrickRenderer:
         left_datum_plane.MapReversed = False
         left_datum_plane.Support = [(context.brick.Origin.OriginFeatures[ORIGIN_YZ_PLANE_INDEX], '')]
         left_datum_plane.MapMode = 'FlatFace'
-        left_datum_plane.AttachmentOffset = Placement(Vector(0, 0, -1 * DIMS_STUD_SPACING / 2),
-                                                      Rotation(0, 0, 0))
+        left_datum_plane.AttachmentOffset = Placement(
+            Vector(0, 0, -1 * ((DIMS_STUD_SPACING / 2) - DIMS_BRICK_OUTER_REDUCTION)),
+            Rotation(0, 0, 0))
         left_datum_plane.ViewObject.Visibility = False
         context.left_datum_plane = left_datum_plane
 
@@ -352,7 +357,8 @@ class BrickRenderer:
         right_datum_plane.Support = [(context.brick.Origin.OriginFeatures[ORIGIN_YZ_PLANE_INDEX], '')]
         right_datum_plane.MapMode = 'FlatFace'
         right_datum_plane.AttachmentOffset = Placement(
-            Vector(0, 0, (DIMS_STUD_SPACING / 2) + (DIMS_STUD_SPACING * (context.width - 1))),
+            Vector(0, 0,
+                   (DIMS_STUD_SPACING / 2) + (DIMS_STUD_SPACING * (context.width - 1) - DIMS_BRICK_OUTER_REDUCTION)),
             Rotation(0, 0, 0))
         right_datum_plane.ViewObject.Visibility = False
         context.right_datum_plane = right_datum_plane
@@ -373,7 +379,8 @@ class BrickRenderer:
         front_inside_datum_plane.Support = [(context.brick.Origin.OriginFeatures[ORIGIN_XZ_PLANE_INDEX], '')]
         front_inside_datum_plane.MapMode = 'FlatFace'
         front_inside_datum_plane.AttachmentOffset = Placement(
-            Vector(0, 0, (DIMS_STUD_SPACING / 2) - DIMS_RIBBED_SIDE_THICKNESS), Rotation(0, 0, 0))
+            Vector(0, 0, (DIMS_STUD_SPACING / 2) - DIMS_RIBBED_SIDE_THICKNESS - DIMS_BRICK_OUTER_REDUCTION),
+            Rotation(0, 0, 0))
         front_inside_datum_plane.ViewObject.Visibility = False
         context.front_inside_datum_plane = front_inside_datum_plane
 
@@ -384,7 +391,8 @@ class BrickRenderer:
         back_inside_datum_plane.MapMode = 'FlatFace'
         back_inside_datum_plane.AttachmentOffset = Placement(
             Vector(0, 0, -1 * ((self.depth - 1) * DIMS_STUD_SPACING +
-                               ((DIMS_STUD_SPACING / 2) - DIMS_RIBBED_SIDE_THICKNESS))), Rotation(0, 0, 0))
+                               ((DIMS_STUD_SPACING / 2) - DIMS_RIBBED_SIDE_THICKNESS - DIMS_BRICK_OUTER_REDUCTION))),
+            Rotation(0, 0, 0))
         back_inside_datum_plane.ViewObject.Visibility = False
         context.back_inside_datum_plane = back_inside_datum_plane
 
@@ -394,7 +402,8 @@ class BrickRenderer:
         left_inside_datum_plane.Support = [(context.brick.Origin.OriginFeatures[ORIGIN_YZ_PLANE_INDEX], '')]
         left_inside_datum_plane.MapMode = 'FlatFace'
         left_inside_datum_plane.AttachmentOffset = Placement(
-            Vector(0, 0, -1 * ((DIMS_STUD_SPACING / 2) - DIMS_RIBBED_SIDE_THICKNESS)), Rotation(0, 0, 0))
+            Vector(0, 0, -1 * ((DIMS_STUD_SPACING / 2) - DIMS_RIBBED_SIDE_THICKNESS - DIMS_BRICK_OUTER_REDUCTION)),
+            Rotation(0, 0, 0))
         left_inside_datum_plane.ViewObject.Visibility = False
         context.left_inside_datum_plane = left_inside_datum_plane
 
@@ -405,7 +414,8 @@ class BrickRenderer:
         right_inside_datum_plane.MapMode = 'FlatFace'
         right_inside_datum_plane.AttachmentOffset = Placement(
             Vector(0, 0, (self.width - 1) * DIMS_STUD_SPACING +
-                   ((DIMS_STUD_SPACING / 2) - DIMS_RIBBED_SIDE_THICKNESS)), Rotation(0, 0, 0))
+                   ((DIMS_STUD_SPACING / 2) - DIMS_RIBBED_SIDE_THICKNESS - DIMS_BRICK_OUTER_REDUCTION)),
+            Rotation(0, 0, 0))
         right_inside_datum_plane.ViewObject.Visibility = False
         context.right_inside_datum_plane = right_inside_datum_plane
 
@@ -420,6 +430,8 @@ class BrickRenderer:
         context.depth_mirror_datum_plane = depth_mirror_datum_plane
 
         context.xz_plane = context.doc.XZ_Plane
+        context.yz_plane = context.doc.YZ_Plane
+        context.xy_plane = context.doc.XY_Plane
 
     def render(self):
 

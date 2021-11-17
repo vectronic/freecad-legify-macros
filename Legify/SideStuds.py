@@ -1,8 +1,6 @@
 # coding: UTF-8
 
 from FreeCAD import Console, Vector
-import Part
-import Sketcher
 from Legify.Common import *
 
 
@@ -27,8 +25,8 @@ class SideStudsRenderer:
         self.left_datum_plane = None
         self.right_datum_plane = None
 
-    def _render_side_studs_outside(self, label, plane, count, style, inverted):
-        Console.PrintMessage("render_side_studs_outside({0},{1},{2},{3})\n".format(label, count, style, inverted))
+    def _render_side_studs_outside(self, label, plane, count, inverted):
+        Console.PrintMessage("render_side_studs_outside({},{},{})\n".format(label, count, inverted))
 
         # side studs outside pad
 
@@ -105,7 +103,7 @@ class SideStudsRenderer:
         side_studs_outside_pocket_sketch.ViewObject.Visibility = False
 
     def _render_side_studs_inside(self, label, plane, count, inverted):
-        Console.PrintMessage("render_side_studs_inside({0},{1})\n".format(label, count))
+        Console.PrintMessage("render_side_studs_inside({},{})\n".format(label, count))
 
         # side studs pocket
 
@@ -156,21 +154,21 @@ class SideStudsRenderer:
         self.right_datum_plane = context.right_datum_plane
 
         if self.front:
-            self._render_side_studs_outside("front", self.front_datum_plane, self.width, self.style, True)
+            self._render_side_studs_outside("front", self.front_datum_plane, self.width, True)
             if self.style == SideStudStyle.HOLE:
                 self._render_side_studs_inside("front", self.front_datum_plane, self.width, False)
 
         if self.back:
-            self._render_side_studs_outside("back", self.back_datum_plane, self.width, self.style, False)
+            self._render_side_studs_outside("back", self.back_datum_plane, self.width, False)
             if self.style == SideStudStyle.HOLE:
                 self._render_side_studs_inside("back", self.back_datum_plane, self.width, True)
 
         if self.left:
-            self._render_side_studs_outside("left", self.left_datum_plane, self.depth, self.style, False)
+            self._render_side_studs_outside("left", self.left_datum_plane, self.depth, False)
             if self.style == SideStudStyle.HOLE:
                 self._render_side_studs_inside("left", self.left_datum_plane, self.depth, True)
 
         if self.right:
-            self._render_side_studs_outside("right", self.right_datum_plane, self.depth, self.style, True)
+            self._render_side_studs_outside("right", self.right_datum_plane, self.depth, True)
             if self.style == SideStudStyle.HOLE:
                 self._render_side_studs_inside("right", self.right_datum_plane, self.depth, False)

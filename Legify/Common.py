@@ -1,7 +1,6 @@
 # coding: UTF-8
 
-from FreeCAD import Console
-from FreeCAD import Vector
+from FreeCAD import Console, Vector
 import math
 import Part
 import Sketcher
@@ -23,6 +22,7 @@ HoleStyle = _enum("NONE", "HOLE", "AXLE")
 
 DIMS_STUD_SPACING = 8
 DIMS_PLATE_HEIGHT = 3.2
+DIMS_BRICK_OUTER_REDUCTION = 0.1
 
 DIMS_EDGE_FILLET = 0.1
 DIMS_STUD_FILLET = 0.25
@@ -31,24 +31,24 @@ DIMS_TOP_THICKNESS = 1.1
 DIMS_FLAT_SIDE_THICKNESS = 1.5
 DIMS_RIBBED_SIDE_THICKNESS = 1.2
 
-DIMS_SIDE_RIB_WIDTH = 0.65
+DIMS_SIDE_RIB_WIDTH = 0.7
 DIMS_SIDE_RIB_DEPTH = 0.3
 
-DIMS_STUD_OUTER_RADIUS = 2.475
-DIMS_STUD_INNER_RADIUS = 1.65
+DIMS_STUD_OUTER_RADIUS = 2.45
+DIMS_STUD_INNER_RADIUS = 1.6
 DIMS_STUD_FLAT_THICKNESS = 0.9
 DIMS_STUD_HEIGHT = 1.8
 DIMS_STUD_INSIDE_HOLE_RADIUS = 1.2
 DIMS_STUD_INSIDE_HOLE_TOP_OFFSET = 1.7
 
-DIMS_STICK_OUTER_RADIUS = 1.55
-DIMS_STICK_INNER_RADIUS = 0.8
-DIMS_STICK_RIB_THICKNESS = 0.8
+DIMS_STICK_OUTER_RADIUS = 1.5
+DIMS_STICK_INNER_RADIUS = 0.75
+DIMS_STICK_RIB_THICKNESS = 0.9
 DIMS_STICK_RIB_BOTTOM_OFFSET = 2.15
-DIMS_STICK_AND_TUBE_BOTTOM_INSET = 0.15
+DIMS_STICK_AND_TUBE_BOTTOM_INSET = 0.2
 
 DIMS_TUBE_OUTER_RADIUS = 3.25
-DIMS_TUBE_INNER_RADIUS = 2.5
+DIMS_TUBE_INNER_RADIUS = 2.45
 DIMS_TUBE_FLAT_THICKNESS = 0.9
 DIMS_TUBE_RIB_THICKNESS = 0.8
 DIMS_TUBE_RIB_BOTTOM_OFFSET = 2.15
@@ -56,10 +56,21 @@ DIMS_TUBE_RIB_BOTTOM_OFFSET = 2.15
 DIMS_SIDE_STUD_CENTRE_HEIGHT = 5.7
 
 DIMS_TECHNIC_HOLE_CENTRE_HEIGHT = 5.8
-DIMS_TECHNIC_HOLE_OUTER_RADIUS = 3
-DIMS_TECHNIC_HOLE_INNER_RADIUS = 2.45
-DIMS_TECHNIC_HOLE_COUNTERBORE_RADIUS = 3.1
-DIMS_TECHNIC_HOLE_COUNTERBORE_DEPTH = 0.8
+DIMS_TECHNIC_HOLE_OUTER_RADIUS = 3.55
+DIMS_TECHNIC_HOLE_INNER_RADIUS = 2.4
+DIMS_TECHNIC_HOLE_COUNTERBORE_RADIUS = 3.05
+DIMS_TECHNIC_HOLE_COUNTERBORE_DEPTH = 0.85
+
+DIMS_PIN_COLLAR_DEPTH = 0.8
+DIMS_PIN_COLLAR_RADIUS = 2.95
+DIMS_PIN_OUTER_RADIUS = 2.35
+DIMS_PIN_INNER_RADIUS = 1.7
+DIMS_PIN_LENGTH = 8
+DIMS_PIN_FLANGE_HEIGHT = 0.25
+DIMS_PIN_FLANGE_DEPTH = 0.7
+DIMS_PIN_NOTCH_WIDTH = 0.9
+DIMS_PIN_NOTCH_DEPTH = 2.8
+DIMS_PIN_NOTCH_OPENING_FILLET_RADIUS = 0.35
 
 # Part Design Constants
 
@@ -70,10 +81,10 @@ SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX = 3
 # Origin geometry is indexed at -1
 SKETCH_GEOMETRY_ORIGIN_INDEX = -1
 # External geometry is indexed from -3 descending! https://forum.freecadweb.org/viewtopic.php?t=24211
-SKETCH_GEOMETRY_FIRST_CONSTRUCTION_INDEX = -3
+SKETCH_GEOMETRY_FIRST_EXTERNAL_INDEX = -3
 
 PAD_TYPE_DIMENSION = 0
-PAD_TYPE_TO_LAST = 1
+PAD_TYPE_THROUGH_ALL = 1
 PAD_TYPE_TO_FIRST = 2
 PAD_TYPE_UP_TO_FACE = 3
 PAD_TYPE_TWO_DIMENSIONS = 4
@@ -141,28 +152,20 @@ def yz_plane_bottom_left_vector():
 
 
 def add_circle_to_sketch(sketch, radius, x, y, as_arcs):
-    Console.PrintMessage("add_circle_to_sketch({0},{1},{2},{3})\n".format(radius, x, y, as_arcs))
+    Console.PrintMessage("add_circle_to_sketch({},{},{},{})\n".format(radius, x, y, as_arcs))
 
     geometries = []
     constraints = []
 
     if as_arcs:
 
-        # Construction line
+        # Construction lines
         geometries.append(Part.LineSegment(xy_plane_bottom_left_vector(), xy_plane_top_right_vector()))
         constraints.append(Sketcher.Constraint('Angle', 0, 45 * math.pi / 180))
-        constraints.append(Sketcher.Constraint("DistanceX",
-                                               SKETCH_GEOMETRY_ORIGIN_INDEX, SKETCH_GEOMETRY_VERTEX_START_INDEX,
-                                               0, SKETCH_GEOMETRY_VERTEX_END_INDEX,
-                                               x))
-        constraints.append(Sketcher.Constraint("DistanceY",
-                                               SKETCH_GEOMETRY_ORIGIN_INDEX, SKETCH_GEOMETRY_VERTEX_START_INDEX,
-                                               0, SKETCH_GEOMETRY_VERTEX_END_INDEX,
-                                               y))
         constraints.append(Sketcher.Constraint("Distance",
                                                0, SKETCH_GEOMETRY_VERTEX_START_INDEX,
                                                0, SKETCH_GEOMETRY_VERTEX_END_INDEX,
-                                               radius))
+                                               radius * 2))
 
         # Drawn as two arcs instead of one circle so that an edge appears in geometry - this allows
         # measurement between vertices of distance between arc and flat edge
@@ -175,29 +178,35 @@ def add_circle_to_sketch(sketch, radius, x, y, as_arcs):
         geometries.append(Part.ArcOfCircle(Part.Circle(Vector(4, 4, 0), Vector(0, 0, 1), radius), rad1, rad2))
         geometries.append(Part.ArcOfCircle(Part.Circle(Vector(4, 4, 0), Vector(0, 0, 1), radius), rad3, rad4))
 
-        # position arc midpoints
-
-        constraints.append(Sketcher.Constraint('Coincident',
+        # position arc midpoint
+        constraints.append(Sketcher.Constraint("DistanceX",
+                                               SKETCH_GEOMETRY_ORIGIN_INDEX, SKETCH_GEOMETRY_VERTEX_START_INDEX,
                                                1, SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX,
-                                               2, SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX))
+                                               x))
+        constraints.append(Sketcher.Constraint("DistanceY",
+                                               SKETCH_GEOMETRY_ORIGIN_INDEX, SKETCH_GEOMETRY_VERTEX_START_INDEX,
+                                               1, SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX,
+                                               y))
+        constraints.append(Sketcher.Constraint('PointOnObject',
+                                               1, SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX,
+                                               0))
+        constraints.append(Sketcher.Constraint('PointOnObject',
+                                               2, SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX,
+                                               0))
+
+        # position arc and construction endpoints
+        constraints.append(Sketcher.Constraint('Coincident',
+                                               0, SKETCH_GEOMETRY_VERTEX_START_INDEX,
+                                               1, SKETCH_GEOMETRY_VERTEX_START_INDEX))
+        constraints.append(Sketcher.Constraint('Coincident',
+                                               0, SKETCH_GEOMETRY_VERTEX_START_INDEX,
+                                               2, SKETCH_GEOMETRY_VERTEX_END_INDEX))
         constraints.append(Sketcher.Constraint('Coincident',
                                                0, SKETCH_GEOMETRY_VERTEX_END_INDEX,
-                                               1, SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX))
-        # join arc endpoints
+                                               1, SKETCH_GEOMETRY_VERTEX_END_INDEX))
         constraints.append(Sketcher.Constraint('Coincident',
-                                               1, SKETCH_GEOMETRY_VERTEX_END_INDEX,
+                                               0, SKETCH_GEOMETRY_VERTEX_END_INDEX,
                                                2, SKETCH_GEOMETRY_VERTEX_START_INDEX))
-        constraints.append(Sketcher.Constraint('Coincident',
-                                               1, SKETCH_GEOMETRY_VERTEX_START_INDEX,
-                                               2, SKETCH_GEOMETRY_VERTEX_END_INDEX))
-        # make arcs symmetric on construction line
-        constraints.append(Sketcher.Constraint('Coincident',
-                                               1, SKETCH_GEOMETRY_VERTEX_START_INDEX,
-                                               0, SKETCH_GEOMETRY_VERTEX_START_INDEX))
-        constraints.append(Sketcher.Constraint('Symmetric',
-                                               1, SKETCH_GEOMETRY_VERTEX_START_INDEX,
-                                               1, SKETCH_GEOMETRY_VERTEX_END_INDEX,
-                                               1, SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX))
 
         sketch.addGeometry(geometries, False)
         sketch.addConstraint(constraints)
@@ -220,7 +229,7 @@ def add_circle_to_sketch(sketch, radius, x, y, as_arcs):
 
 
 def add_inner_circle_with_flats_to_sketch(sketch, outer_radius, inner_radius, flat_thickness, x_offset, y_offset):
-    Console.PrintMessage("add_inner_circle_with_flats_to_sketch({0},{1},{2},{3},{4})\n"
+    Console.PrintMessage("add_inner_circle_with_flats_to_sketch({},{},{},{},{})\n"
                          .format(outer_radius, inner_radius, flat_thickness, x_offset, y_offset))
 
     geometries = []
@@ -338,7 +347,7 @@ def add_inner_circle_with_flats_to_sketch(sketch, outer_radius, inner_radius, fl
 
 
 def get_circle_edge_names(plane, inverted, offset, feature, radius):
-    Console.PrintMessage("get_circle_edge_names({0},{1},{2},{3})\n".format(plane, inverted, offset, radius))
+    Console.PrintMessage("get_circle_edge_names({},{},{},{})\n".format(plane, inverted, offset, radius))
 
     plane_normal = plane.Shape.normalAt(0, 0)
     plane_normal = plane_normal if inverted else plane_normal.negative()
@@ -389,7 +398,7 @@ def get_circle_edge_names(plane, inverted, offset, feature, radius):
 
 
 def get_arc_edge_names(plane, inverted, offset, feature, radius):
-    Console.PrintMessage("get_arc_edge_names({0},{1},{2})\n".format(inverted, offset, radius))
+    Console.PrintMessage("get_arc_edge_names({},{},{})\n".format(inverted, offset, radius))
 
     plane_normal = plane.Shape.normalAt(0, 0)
     plane_normal = plane_normal if inverted else plane_normal.negative()
