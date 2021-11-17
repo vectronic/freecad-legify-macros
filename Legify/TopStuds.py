@@ -23,9 +23,8 @@ class TopStudsRenderer:
         self.top_datum_plane = None
         self.top_inside_datum_plane = None
 
-    def _render_top_studs_outside(self, initial_width_offset, initial_depth_offset, style):
-        Console.PrintMessage("render_top_studs_outside({0},{1},{2})\n".format(
-            initial_width_offset, initial_depth_offset, style))
+    def _render_top_studs_outside(self, initial_width_offset, initial_depth_offset):
+        Console.PrintMessage("render_top_studs_outside({},{})\n".format(initial_width_offset, initial_depth_offset))
 
         # top studs outside pad
 
@@ -34,7 +33,7 @@ class TopStudsRenderer:
         top_studs_outside_pad_sketch.MapMode = 'FlatFace'
 
         add_circle_to_sketch(top_studs_outside_pad_sketch, DIMS_STUD_OUTER_RADIUS, initial_width_offset,
-                             initial_depth_offset, style == TopStudStyle.OPEN)
+                             initial_depth_offset, self.style == TopStudStyle.OPEN)
 
         self.doc.recompute()
 
@@ -61,7 +60,7 @@ class TopStudsRenderer:
         top_studs_outside_pad_sketch.ViewObject.Visibility = False
 
         # determine the stud outer edges
-        if style == TopStudStyle.OPEN:
+        if self.style == TopStudStyle.OPEN:
             edge_names = get_arc_edge_names(self.top_datum_plane, True, DIMS_STUD_HEIGHT, top_studs_outside_pad,
                                             DIMS_STUD_OUTER_RADIUS)
         else:
@@ -76,7 +75,7 @@ class TopStudsRenderer:
             self.doc.recompute()
 
         # top studs outside pocket
-        if style == TopStudStyle.OPEN:
+        if self.style == TopStudStyle.OPEN:
 
             top_studs_outside_pocket_sketch = self.brick.newObject("Sketcher::SketchObject",
                                                                    "top_studs_outside_pocket_sketch")
@@ -112,7 +111,7 @@ class TopStudsRenderer:
             top_studs_outside_pocket_sketch.ViewObject.Visibility = False
 
     def _render_top_studs_inside(self, initial_width_offset, initial_depth_offset):
-        Console.PrintMessage("render_top_studs_inside({0},{1})\n".format(initial_width_offset, initial_depth_offset))
+        Console.PrintMessage("render_top_studs_inside({},{})\n".format(initial_width_offset, initial_depth_offset))
 
         # top studs inside pocket
 
@@ -167,7 +166,7 @@ class TopStudsRenderer:
         initial_width_offset = (self.width - self.width_count) * DIMS_STUD_SPACING / 2
         initial_depth_offset = (self.depth - self.depth_count) * DIMS_STUD_SPACING / 2
 
-        self._render_top_studs_outside(initial_width_offset, initial_depth_offset, self.style)
+        self._render_top_studs_outside(initial_width_offset, initial_depth_offset)
 
         # Only render inner pocket if closed studs AND studs are not offset
         if self.style == TopStudStyle.CLOSED and initial_width_offset == 0 and initial_depth_offset == 0:

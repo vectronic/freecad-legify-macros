@@ -27,7 +27,7 @@ class HolesRenderer:
 
     @staticmethod
     def _add_technic_surround(geometries, constraints, hole_offset):
-        Console.PrintMessage("_add_technic_surround_to_sketch({0})\n".format(hole_offset))
+        Console.PrintMessage("_add_technic_surround_to_sketch({})\n".format(hole_offset))
 
         segment_count = len(geometries)
 
@@ -64,7 +64,7 @@ class HolesRenderer:
 
         # Render up until top_inside_datum_plane - already added as a line geometry element to the sketch
         constraints.append(Sketcher.Constraint("PointOnObject", segment_count + 1, SKETCH_GEOMETRY_VERTEX_END_INDEX,
-                                               SKETCH_GEOMETRY_FIRST_CONSTRUCTION_INDEX))
+                                               SKETCH_GEOMETRY_FIRST_EXTERNAL_INDEX))
 
         geometries.append(Part.LineSegment(xz_plane_bottom_right_vector(), xz_plane_bottom_left_vector()))
         constraints.append(Sketcher.Constraint("Horizontal", segment_count + 2))
@@ -81,8 +81,8 @@ class HolesRenderer:
     def _render_holes(self):
         Console.PrintMessage("render_holes()\n")
 
-        hole_count = self.width if self.offset else (self.width - 1)
-        hole_offset = 0 if self.offset else (DIMS_STUD_SPACING / 2)
+        hole_count = (self.width - 1) if self.offset else self.width
+        hole_offset = (DIMS_STUD_SPACING / 2) if self.offset else 0
 
         # holes pad with cross-section meeting inside of body
 
@@ -144,8 +144,8 @@ class HolesRenderer:
 
             holes_counterbore_pocket_sketch = self.brick.newObject("Sketcher::SketchObject",
                                                                    "holes_counterbore_pocket_sketch")
-            holes_counterbore_pocket_sketch.Support = (self.front_datum_plane, '')
-            holes_counterbore_pocket_sketch.MapMode = 'FlatFace'
+            holes_counterbore_pocket_sketch.Support = (holes_pocket_sketch, '')
+            holes_counterbore_pocket_sketch.MapMode = 'ObjectXY'
 
             add_circle_to_sketch(holes_counterbore_pocket_sketch, DIMS_TECHNIC_HOLE_COUNTERBORE_RADIUS, hole_offset,
                                  DIMS_TECHNIC_HOLE_CENTRE_HEIGHT, False)
@@ -167,10 +167,12 @@ class HolesRenderer:
 
             # counterbore mirror
 
-            holes_counterbore_mirror = self.brick.newObject("PartDesign::Mirrored", "Mirrored")
+            # do not use self.brick.newObject("PartDesign::Mirrored", "Mirrored") here as the
+            # brick.Tip will not be updated
+            holes_counterbore_mirror = self.doc.addObject("PartDesign::Mirrored", "Mirrored")
             holes_counterbore_mirror.Originals = [holes_counterbore_pocket]
             holes_counterbore_mirror.MirrorPlane = (self.depth_mirror_datum_plane, [""])
-            self.brick.Tip = holes_counterbore_mirror
+            self.brick.addObject(holes_counterbore_mirror)
 
             self.doc.recompute()
 
