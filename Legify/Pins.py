@@ -143,14 +143,19 @@ class PinsRenderer:
 
         return pin_revolution
 
-    def _render_pin_flange(self, label, flange_path_sketch_plane, backwards):
+    def _render_pin_flange(self, label, base_plane, backwards):
         Console.PrintMessage("_render_pin_flange({},{})\n".format(label, backwards))
 
         # path for additive pipe
 
         pin_pipe_path_sketch = self.brick.newObject("Sketcher::SketchObject", label + "_pin_pipe_path_sketch")
-        pin_pipe_path_sketch.Support = (flange_path_sketch_plane, '')
+        pin_pipe_path_sketch.Support = (base_plane, '')
         pin_pipe_path_sketch.MapMode = 'FlatFace'
+        pin_pipe_path_sketch.MapReversed = backwards
+        # note 0.005 adjustment to prevent seemingly a bug in freecad rendering
+        pin_pipe_path_sketch.AttachmentOffset = Placement(Vector(0, 0,
+                                                          DIMS_PIN_LENGTH - (DIMS_PIN_FLANGE_DEPTH / 2) - 0.005),
+                                                          Rotation(0, 0, 0))
 
         geometries = []
         constraints = []
@@ -168,8 +173,6 @@ class PinsRenderer:
         if self.pins_offset:
             distance_x += DIMS_STUD_SPACING / 2
         if backwards:
-            distance_x = -1 * distance_x
-        if label == 'left' or label == 'right':
             distance_x = -1 * distance_x
 
         constraints.append(Sketcher.Constraint('DistanceX',
@@ -395,13 +398,13 @@ class PinsRenderer:
 
         self.doc.recompute()
 
-    def _render_pins(self, label, datum_point, revolution_sketch_plane, flange_path_sketch_plane, backwards, rotation,
-                     count):
-        Console.PrintMessage("_render_pins({},{},{})\n".format(label, backwards, count))
+    def _render_pins(self, label, datum_point, revolution_sketch_plane, base_plane, revolution_backwards,
+                     flange_backwards, rotation, count):
+        Console.PrintMessage("_render_pins({},{},{},{})\n".format(label, revolution_backwards, flange_backwards, count))
 
-        pin_revolution = self._render_pin_revolution(label, datum_point, revolution_sketch_plane, backwards)
+        pin_revolution = self._render_pin_revolution(label, datum_point, revolution_sketch_plane, revolution_backwards)
 
-        pin_flange = self._render_pin_flange(label, flange_path_sketch_plane, backwards)
+        pin_flange = self._render_pin_flange(label, base_plane, flange_backwards)
 
         pin_notch_pocket = self._render_pin_notch(label, datum_point, rotation)
 
@@ -455,49 +458,27 @@ class PinsRenderer:
 
             if self.front:
                 if self.style == PinStyle.PIN:
-                    flange_path_sketch_plane = context.brick.newObject("PartDesign::Plane",
-                                                                       "pin_flange_path_front_sketch_plane")
-                    flange_path_sketch_plane.MapReversed = False
-                    flange_path_sketch_plane.Support = [(self.front_datum_plane, '')]
-
-                    # note 0.005 adjustment to prevent seemingly a bug in freecad rendering
-                    flange_path_sketch_plane.MapMode = 'FlatFace'
-                    flange_path_sketch_plane.AttachmentOffset = Placement(
-                        Vector(0, 0, DIMS_PIN_LENGTH - (DIMS_PIN_FLANGE_DEPTH / 2) - 0.005), Rotation(0, 0, 0))
-                    flange_path_sketch_plane.ViewObject.Visibility = False
-
                     notch_datum_point = context.brick.newObject('PartDesign::Point',
                                                                 'pin_notch_front_datum_point')
                     notch_datum_point.Support = [(self.front_datum_plane, '')]
                     notch_datum_point.MapMode = 'ObjectOrigin'
                     notch_datum_point.ViewObject.Visibility = False
 
-                    self._render_pins("front", notch_datum_point, revolution_sketch_plane, flange_path_sketch_plane,
-                                      False, 0, count)
+                    self._render_pins("front", notch_datum_point, revolution_sketch_plane, self.front_datum_plane,
+                                      False, False, 0, count)
                 else:
                     self._render_axles("front", revolution_sketch_plane, False, count)
 
             if self.back:
                 if self.style == PinStyle.PIN:
-                    flange_path_sketch_plane = context.brick.newObject("PartDesign::Plane",
-                                                                       "pin_flange_back_front_sketch_plane")
-                    flange_path_sketch_plane.MapReversed = True
-                    flange_path_sketch_plane.Support = [(self.back_datum_plane, '')]
-
-                    # note 0.005 adjustment to prevent seemingly a bug in freecad rendering
-                    flange_path_sketch_plane.MapMode = 'FlatFace'
-                    flange_path_sketch_plane.AttachmentOffset = Placement(
-                        Vector(0, 0, DIMS_PIN_LENGTH - (DIMS_PIN_FLANGE_DEPTH / 2) - 0.005), Rotation(0, 0, 0))
-                    flange_path_sketch_plane.ViewObject.Visibility = False
-
                     notch_datum_point = context.brick.newObject('PartDesign::Point',
                                                                 'pin_notch_back_datum_point')
                     notch_datum_point.Support = [(self.back_datum_plane, '')]
                     notch_datum_point.MapMode = 'ObjectOrigin'
                     notch_datum_point.ViewObject.Visibility = False
 
-                    self._render_pins("back", notch_datum_point, revolution_sketch_plane, flange_path_sketch_plane,
-                                      True, 180, count)
+                    self._render_pins("back", notch_datum_point, revolution_sketch_plane, self.back_datum_plane,
+                                      True, True, 180, count)
                 else:
                     self._render_axles("back", revolution_sketch_plane, True, count)
 
@@ -520,48 +501,26 @@ class PinsRenderer:
 
             if self.left:
                 if self.style == PinStyle.PIN:
-                    flange_path_sketch_plane = context.brick.newObject("PartDesign::Plane",
-                                                                       "pin_flange_path_left_sketch_plane")
-                    flange_path_sketch_plane.MapReversed = True
-                    flange_path_sketch_plane.Support = [(self.left_datum_plane, '')]
-                    flange_path_sketch_plane.MapMode = 'FlatFace'
-
-                    # note 0.005 adjustment to prevent seemingly a bug in freecad rendering
-                    flange_path_sketch_plane.AttachmentOffset = Placement(
-                        Vector(0, 0, DIMS_PIN_LENGTH - (DIMS_PIN_FLANGE_DEPTH / 2) - 0.005), Rotation(0, 0, 0))
-                    flange_path_sketch_plane.ViewObject.Visibility = False
-
                     notch_datum_point = context.brick.newObject('PartDesign::Point',
                                                                 'pin_notch_left_datum_point')
                     notch_datum_point.Support = [(self.left_datum_plane, '')]
                     notch_datum_point.MapMode = 'ObjectOrigin'
                     notch_datum_point.ViewObject.Visibility = False
 
-                    self._render_pins("left", notch_datum_point, revolution_sketch_plane, flange_path_sketch_plane,
-                                      False, 270, count)
+                    self._render_pins("left", notch_datum_point, revolution_sketch_plane, self.left_datum_plane,
+                                      False, True, 270, count)
                 else:
                     self._render_axles("left", revolution_sketch_plane, False, count)
 
             if self.right:
                 if self.style == PinStyle.PIN:
-                    flange_path_sketch_plane = context.brick.newObject("PartDesign::Plane",
-                                                                       "pin_flange_path_right_sketch_plane")
-                    flange_path_sketch_plane.MapReversed = False
-                    flange_path_sketch_plane.Support = [(self.right_datum_plane, '')]
-                    flange_path_sketch_plane.MapMode = 'FlatFace'
-
-                    # note 0.005 adjustment to prevent seemingly a bug in freecad rendering
-                    flange_path_sketch_plane.AttachmentOffset = Placement(
-                        Vector(0, 0, DIMS_PIN_LENGTH - (DIMS_PIN_FLANGE_DEPTH / 2) - 0.005), Rotation(0, 0, 0))
-                    flange_path_sketch_plane.ViewObject.Visibility = False
-
                     notch_datum_point = context.brick.newObject('PartDesign::Point',
                                                                 'pin_notch_right_datum_point')
                     notch_datum_point.Support = [(self.right_datum_plane, '')]
                     notch_datum_point.MapMode = 'ObjectOrigin'
                     notch_datum_point.ViewObject.Visibility = False
 
-                    self._render_pins("right", notch_datum_point, revolution_sketch_plane, flange_path_sketch_plane,
-                                      True, 90, count)
+                    self._render_pins("right", notch_datum_point, revolution_sketch_plane, self.right_datum_plane,
+                                      True, False, 90, count)
                 else:
                     self._render_axles("right", revolution_sketch_plane, True, count)
