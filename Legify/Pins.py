@@ -32,14 +32,14 @@ class PinsRenderer:
         self.left_datum_plane = None
         self.right_datum_plane = None
 
-    def _render_pin_revolution(self, label, datum_point, revolution_sketch_plane, backwards):
+    def _render_pin_revolution(self, label, datum_point, base_plane, backwards):
         Console.PrintMessage("_render_pin_revolution({},{})\n".format(label, backwards))
 
         pin_revolution_sketch = self.brick.newObject("Sketcher::SketchObject", label + "_pin_revolution_sketch")
-        pin_revolution_sketch.Support = (revolution_sketch_plane, '')
-        pin_revolution_sketch.MapMode = 'FlatFace'
+        pin_revolution_sketch.Support = [(base_plane, ''), (datum_point, '')]
+        pin_revolution_sketch.MapMode = 'TangentPlane'
+        pin_revolution_sketch.AttachmentOffset = Placement(Vector(0, 0, 0), Rotation(0, 90, 0))
         pin_revolution_sketch.MapReversed = backwards
-        pin_revolution_sketch.addExternal(datum_point.Label, '')
 
         geometries = []
         constraints = []
@@ -90,8 +90,7 @@ class PinsRenderer:
                                                DIMS_PIN_LENGTH))
         constraints.append(Sketcher.Constraint('DistanceY',
                                                SKETCH_GEOMETRY_ORIGIN_INDEX, SKETCH_GEOMETRY_VERTEX_START_INDEX,
-                                               0, SKETCH_GEOMETRY_VERTEX_START_INDEX,
-                                               DIMS_TECHNIC_HOLE_CENTRE_HEIGHT))
+                                               0, SKETCH_GEOMETRY_VERTEX_START_INDEX, 0))
 
         # constraints for profile and construction line
 
@@ -111,19 +110,16 @@ class PinsRenderer:
                                                DIMS_PIN_COLLAR_RADIUS - DIMS_PIN_INNER_RADIUS))
         constraints.append(Sketcher.Constraint('DistanceY',
                                                SKETCH_GEOMETRY_ORIGIN_INDEX, SKETCH_GEOMETRY_VERTEX_START_INDEX,
-                                               5, SKETCH_GEOMETRY_VERTEX_END_INDEX,
-                                               DIMS_TECHNIC_HOLE_CENTRE_HEIGHT + DIMS_PIN_INNER_RADIUS))
+                                               5, SKETCH_GEOMETRY_VERTEX_END_INDEX, DIMS_PIN_INNER_RADIUS))
 
         # constrain profile and construction line to datum point
 
         constraints.append(Sketcher.Constraint('DistanceX',
                                                0, SKETCH_GEOMETRY_VERTEX_START_INDEX,
-                                               SKETCH_GEOMETRY_FIRST_EXTERNAL_INDEX,
-                                               SKETCH_GEOMETRY_VERTEX_START_INDEX, 0))
+                                               SKETCH_GEOMETRY_ORIGIN_INDEX, SKETCH_GEOMETRY_VERTEX_START_INDEX, 0))
         constraints.append(Sketcher.Constraint('DistanceX',
                                                1, SKETCH_GEOMETRY_VERTEX_START_INDEX,
-                                               SKETCH_GEOMETRY_FIRST_EXTERNAL_INDEX,
-                                               SKETCH_GEOMETRY_VERTEX_START_INDEX, 0))
+                                               SKETCH_GEOMETRY_ORIGIN_INDEX, SKETCH_GEOMETRY_VERTEX_START_INDEX, 0))
 
         pin_revolution_sketch.addGeometry(geometries, False)
         pin_revolution_sketch.addConstraint(constraints)
@@ -154,7 +150,7 @@ class PinsRenderer:
         pin_pipe_path_sketch.MapReversed = backwards
         # note 0.005 adjustment to prevent seemingly a bug in freecad rendering
         pin_pipe_path_sketch.AttachmentOffset = Placement(Vector(0, 0,
-                                                          DIMS_PIN_LENGTH - (DIMS_PIN_FLANGE_DEPTH / 2) - 0.005),
+                                                                 DIMS_PIN_LENGTH - (DIMS_PIN_FLANGE_DEPTH / 2) - 0.005),
                                                           Rotation(0, 0, 0))
 
         geometries = []
@@ -254,6 +250,8 @@ class PinsRenderer:
         pin_notch_sketch = self.brick.newObject("Sketcher::SketchObject", label + "_pin_notch_sketch")
         pin_notch_sketch.Support = [(datum_point, '')]
         pin_notch_sketch.MapMode = 'Translate'
+        pin_notch_sketch.AttachmentOffset = Placement(Vector(0, 0, -1 * DIMS_TECHNIC_HOLE_CENTRE_HEIGHT),
+                                                      Rotation(Vector(0, 0, 0), 0))
         pin_notch_sketch.Placement = Placement(Vector(0, 0, 0), Rotation(Vector(0, 0, 1), rotation))
         pin_notch_sketch.addExternal(datum_point.Label, '')
 
@@ -291,8 +289,6 @@ class PinsRenderer:
                                                DIMS_PIN_NOTCH_WIDTH + (2 * DIMS_PIN_NOTCH_OPENING_FILLET_RADIUS)))
 
         distance_x = (DIMS_PIN_NOTCH_WIDTH / 2) + DIMS_PIN_NOTCH_OPENING_FILLET_RADIUS
-        if self.pins_offset:
-            distance_x += DIMS_STUD_SPACING / 2
 
         if rotation < 180:
             constraints.append(Sketcher.Constraint('DistanceX',
@@ -308,22 +304,10 @@ class PinsRenderer:
                                                5, SKETCH_GEOMETRY_VERTEX_END_INDEX,
                                                SKETCH_GEOMETRY_FIRST_EXTERNAL_INDEX, SKETCH_GEOMETRY_VERTEX_START_INDEX,
                                                DIMS_PIN_LENGTH))
-        if self.pins_offset:
-            if rotation < 180:
-                constraints.append(Sketcher.Constraint('DistanceX',
-                                                       SKETCH_GEOMETRY_ORIGIN_INDEX, SKETCH_GEOMETRY_VERTEX_START_INDEX,
-                                                       0, SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX,
-                                                       DIMS_STUD_SPACING / 2))
-            else:
-                constraints.append(Sketcher.Constraint('DistanceX',
-                                                       0, SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX,
-                                                       SKETCH_GEOMETRY_ORIGIN_INDEX, SKETCH_GEOMETRY_VERTEX_START_INDEX,
-                                                       DIMS_STUD_SPACING / 2))
-        else:
-            constraints.append(Sketcher.Constraint('DistanceX',
-                                                   SKETCH_GEOMETRY_ORIGIN_INDEX, SKETCH_GEOMETRY_VERTEX_START_INDEX,
-                                                   0, SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX,
-                                                   0))
+        constraints.append(Sketcher.Constraint('DistanceX',
+                                               SKETCH_GEOMETRY_ORIGIN_INDEX, SKETCH_GEOMETRY_VERTEX_START_INDEX,
+                                               0, SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX,
+                                               0))
         constraints.append(Sketcher.Constraint('DistanceY',
                                                0, SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX,
                                                SKETCH_GEOMETRY_FIRST_EXTERNAL_INDEX, SKETCH_GEOMETRY_VERTEX_START_INDEX,
@@ -398,20 +382,33 @@ class PinsRenderer:
 
         self.doc.recompute()
 
-    def _render_pins(self, label, datum_point, revolution_sketch_plane, base_plane, revolution_backwards,
-                     flange_backwards, rotation, count):
-        Console.PrintMessage("_render_pins({},{},{},{})\n".format(label, revolution_backwards, flange_backwards, count))
+    def _render_pins(self, label, base_plane, backwards, rotation, count):
+        Console.PrintMessage("_render_pins({},{},{})\n".format(label, backwards, count))
 
-        pin_revolution = self._render_pin_revolution(label, datum_point, revolution_sketch_plane, revolution_backwards)
+        pin_centre_datum_point = self.brick.newObject('PartDesign::Point',
+                                                      'pin_centre_{}_datum_point'.format(label))
+        pin_centre_datum_point.Support = [(base_plane, '')]
+        pin_centre_datum_point.MapMode = 'ObjectOrigin'
+        pin_centre_datum_point.ViewObject.Visibility = False
+        if self.pins_offset:
+            pin_centre_datum_point.AttachmentOffset = Placement(Vector(DIMS_STUD_SPACING / 2,
+                                                                       DIMS_TECHNIC_HOLE_CENTRE_HEIGHT, 0),
+                                                                Rotation(0, 0, 0))
+        else:
+            pin_centre_datum_point.AttachmentOffset = Placement(Vector(0, DIMS_TECHNIC_HOLE_CENTRE_HEIGHT,
+                                                                       0),
+                                                                Rotation(0, 0, 0))
 
-        pin_flange = self._render_pin_flange(label, base_plane, flange_backwards)
+        pin_revolution = self._render_pin_revolution(label, pin_centre_datum_point, base_plane, backwards)
 
-        pin_notch_pocket = self._render_pin_notch(label, datum_point, rotation)
+        pin_flange = self._render_pin_flange(label, base_plane, backwards)
+
+        pin_notch_pocket = self._render_pin_notch(label, pin_centre_datum_point, rotation)
 
         if count > 1:
             self._render_linear_pattern(label, [pin_revolution, pin_flange, pin_notch_pocket], count)
 
-    def _render_axles(self, label, revolution_sketch_plane, backwards, count):
+    def _render_axles(self, label, backwards, count):
         Console.PrintMessage("_render_axles({},{},{})\n".format(label, backwards, count))
         # TODO: implement axle pin
 
@@ -440,87 +437,28 @@ class PinsRenderer:
         self.right_datum_plane = context.right_datum_plane
 
         if self.front or self.back:
-            if self.pins_offset:
-                revolution_sketch_plane = context.brick.newObject("PartDesign::Plane",
-                                                                  "pin_profile_front_sketch_plane")
-                revolution_sketch_plane.MapReversed = False
-                revolution_sketch_plane.Support = [(context.brick.Origin.OriginFeatures[ORIGIN_YZ_PLANE_INDEX], '')]
-                revolution_sketch_plane.MapMode = 'FlatFace'
-                revolution_sketch_plane.AttachmentOffset = Placement(Vector(0, 0, DIMS_STUD_SPACING / 2),
-                                                                     Rotation(0, 0, 0))
-                revolution_sketch_plane.ViewObject.Visibility = False
+            count = self.width
+        else:
+            count = self.depth
 
-                count = self.width - 1
-            else:
-                revolution_sketch_plane = self.yz_plane
+        if self.pins_offset:
+            count = count - 1
 
-                count = self.width
-
+        if self.style == PinStyle.PIN:
             if self.front:
-                if self.style == PinStyle.PIN:
-                    notch_datum_point = context.brick.newObject('PartDesign::Point',
-                                                                'pin_notch_front_datum_point')
-                    notch_datum_point.Support = [(self.front_datum_plane, '')]
-                    notch_datum_point.MapMode = 'ObjectOrigin'
-                    notch_datum_point.ViewObject.Visibility = False
-
-                    self._render_pins("front", notch_datum_point, revolution_sketch_plane, self.front_datum_plane,
-                                      False, False, 0, count)
-                else:
-                    self._render_axles("front", revolution_sketch_plane, False, count)
-
+                self._render_pins("front", self.front_datum_plane, False, 0, count)
             if self.back:
-                if self.style == PinStyle.PIN:
-                    notch_datum_point = context.brick.newObject('PartDesign::Point',
-                                                                'pin_notch_back_datum_point')
-                    notch_datum_point.Support = [(self.back_datum_plane, '')]
-                    notch_datum_point.MapMode = 'ObjectOrigin'
-                    notch_datum_point.ViewObject.Visibility = False
-
-                    self._render_pins("back", notch_datum_point, revolution_sketch_plane, self.back_datum_plane,
-                                      True, True, 180, count)
-                else:
-                    self._render_axles("back", revolution_sketch_plane, True, count)
-
-        if self.left or self.right:
-            if self.pins_offset:
-                revolution_sketch_plane = context.brick.newObject("PartDesign::Plane",
-                                                                  "pin_profile_left_sketch_plane")
-                revolution_sketch_plane.MapReversed = False
-                revolution_sketch_plane.Support = [(context.brick.Origin.OriginFeatures[ORIGIN_XZ_PLANE_INDEX], '')]
-                revolution_sketch_plane.MapMode = 'FlatFace'
-                revolution_sketch_plane.AttachmentOffset = Placement(
-                    Vector(0, 0, -1 * (DIMS_STUD_SPACING / 2)), Rotation(0, 0, 0))
-                revolution_sketch_plane.ViewObject.Visibility = False
-
-                count = self.depth - 1
-            else:
-                revolution_sketch_plane = self.xz_plane
-
-                count = self.depth
-
+                self._render_pins("back", self.back_datum_plane, True, 180, count)
             if self.left:
-                if self.style == PinStyle.PIN:
-                    notch_datum_point = context.brick.newObject('PartDesign::Point',
-                                                                'pin_notch_left_datum_point')
-                    notch_datum_point.Support = [(self.left_datum_plane, '')]
-                    notch_datum_point.MapMode = 'ObjectOrigin'
-                    notch_datum_point.ViewObject.Visibility = False
-
-                    self._render_pins("left", notch_datum_point, revolution_sketch_plane, self.left_datum_plane,
-                                      False, True, 270, count)
-                else:
-                    self._render_axles("left", revolution_sketch_plane, False, count)
-
+                self._render_pins("left", self.left_datum_plane, True, 270, count)
             if self.right:
-                if self.style == PinStyle.PIN:
-                    notch_datum_point = context.brick.newObject('PartDesign::Point',
-                                                                'pin_notch_right_datum_point')
-                    notch_datum_point.Support = [(self.right_datum_plane, '')]
-                    notch_datum_point.MapMode = 'ObjectOrigin'
-                    notch_datum_point.ViewObject.Visibility = False
-
-                    self._render_pins("right", notch_datum_point, revolution_sketch_plane, self.right_datum_plane,
-                                      True, False, 90, count)
-                else:
-                    self._render_axles("right", revolution_sketch_plane, True, count)
+                self._render_pins("right", self.right_datum_plane, False, 90, count)
+        else:
+            if self.front:
+                self._render_axles("front", False, count)
+            if self.back:
+                self._render_axles("back", True, count)
+            if self.left:
+                self._render_axles("left", False, count)
+            if self.right:
+                self._render_axles("right", True, count)
