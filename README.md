@@ -25,10 +25,13 @@ to create parametric models in FreeCAD is quite possibly insane!
 
     `git clone https://github.com/vectronic/freecad-legify-macros.git`
     
-1. Link the cloned folder and macro file into the FreeCAD macros directory:
+1. Link the cloned folder and macro files into the FreeCAD macros directory:
 
-       ln -s <absolute path of cloned repository>/legify-brick.FCMacro <absolute path of user preferences folder>/FreeCAD/Macro/
        ln -s <absolute path of cloned repository>/Legify <absolute path of user preferences folder>/FreeCAD/Macro/
+       ln -s <absolute path of cloned repository>/legify-brick.FCMacro <absolute path of user preferences folder>/FreeCAD/Macro/
+       ln -s <absolute path of cloned repository>/legify-technic-pin.FCMacro <absolute path of user preferences folder>/FreeCAD/Macro/
+
+**NOTE**: On MacOS the typical location for the user preferences folder is `/Users/<username>/Library/Application\ Support`.
 
 ## Usage
 
@@ -36,7 +39,7 @@ to create parametric models in FreeCAD is quite possibly insane!
 1. Run the `legify-brick.FCMacro`
 1. Modify parameters as desired in the popup dialog 
 1. Click OK
-1. Wait for for a lot of sketches, constraints, pads, pockets and fillets to be rendered...
+1. Wait for a lot of sketches, constraints, pads, pockets and fillets to be rendered...
 1. Admire the resulting beauty! 
 
 ## TODO

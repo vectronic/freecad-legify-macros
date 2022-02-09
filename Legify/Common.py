@@ -1,6 +1,6 @@
 # coding: UTF-8
 
-from FreeCAD import Console, Vector
+from FreeCAD import Console, Placement, Rotation, Vector
 import math
 import Part
 import Sketcher
@@ -418,7 +418,7 @@ def get_arc_edge_names(plane, inverted, offset, feature, radius):
                 edge = face.Edges[j]
 
                 # arcs have two vertices and arc needs to have a curve with desired radius
-                if len(edge.Vertexes) == 2 and hasattr(edge, 'Curve') and hasattr(edge.Curve, 'Radius')\
+                if len(edge.Vertexes) == 2 and hasattr(edge, 'Curve') and hasattr(edge.Curve, 'Radius') \
                         and abs(edge.Curve.Radius - radius) < 1e-4:
 
                     # face with negative offset along normal lies in plane
@@ -431,7 +431,7 @@ def get_arc_edge_names(plane, inverted, offset, feature, radius):
         edge = feature.Shape.Edges[i]
 
         # arcs have two vertices and arc needs to have a curve with desired radius
-        if len(edge.Vertexes) == 2 and hasattr(edge, 'Curve') and hasattr(edge.Curve, 'Radius')\
+        if len(edge.Vertexes) == 2 and hasattr(edge, 'Curve') and hasattr(edge.Curve, 'Radius') \
                 and abs(edge.Curve.Radius - radius) < 1e-4:
 
             # arc needs to be in potential edges
@@ -443,3 +443,353 @@ def get_arc_edge_names(plane, inverted, offset, feature, radius):
                     edge_names.append("Edge" + repr(i + 1))
                     break
     return edge_names
+
+
+def _render_pin_revolution(label, datum_line, body, doc):
+    Console.PrintMessage("_render_pin_revolution({})\n".format(label))
+
+    pin_revolution_sketch = body.newObject("Sketcher::SketchObject", label + "_pin_revolution_sketch")
+    pin_revolution_sketch.Support = [(datum_line, '')]
+    pin_revolution_sketch.MapMode = 'ObjectXY'
+    pin_revolution_sketch.AttachmentOffset = Placement(Vector(0, 0, 0), Rotation(0, 90, 0))
+
+    geometries = []
+    constraints = []
+
+    # construction line for rotation
+
+    geometries.append(Part.LineSegment(xy_plane_top_right_vector(), xy_plane_top_left_vector()))
+    constraints.append(Sketcher.Constraint("Horizontal", 0))
+
+    # lines for profile
+
+    geometries.append(Part.LineSegment(xy_plane_top_right_vector(), xy_plane_top_left_vector()))
+    constraints.append(Sketcher.Constraint('Horizontal', 1))
+
+    geometries.append(Part.LineSegment(xy_plane_top_left_vector(), xy_plane_bottom_left_vector()))
+    constraints.append(Sketcher.Constraint('Vertical', 2))
+
+    geometries.append(Part.LineSegment(xy_plane_top_right_vector(), xy_plane_top_left_vector()))
+    constraints.append(Sketcher.Constraint('Horizontal', 3))
+
+    geometries.append(Part.LineSegment(xy_plane_top_left_vector(), xy_plane_bottom_left_vector()))
+    constraints.append(Sketcher.Constraint('Vertical', 4))
+
+    geometries.append(Part.LineSegment(xy_plane_top_right_vector(), xy_plane_top_left_vector()))
+    constraints.append(Sketcher.Constraint('Horizontal', 5))
+
+    geometries.append(Part.LineSegment(xy_plane_top_left_vector(), xy_plane_bottom_left_vector()))
+    constraints.append(Sketcher.Constraint('Vertical', 6))
+
+    # constraints for profile
+
+    constraints.append(Sketcher.Constraint("Coincident", 1, SKETCH_GEOMETRY_VERTEX_END_INDEX,
+                                           2, SKETCH_GEOMETRY_VERTEX_START_INDEX))
+    constraints.append(Sketcher.Constraint("Coincident", 2, SKETCH_GEOMETRY_VERTEX_END_INDEX,
+                                           3, SKETCH_GEOMETRY_VERTEX_START_INDEX))
+    constraints.append(Sketcher.Constraint("Coincident", 3, SKETCH_GEOMETRY_VERTEX_END_INDEX,
+                                           4, SKETCH_GEOMETRY_VERTEX_START_INDEX))
+    constraints.append(Sketcher.Constraint("Coincident", 4, SKETCH_GEOMETRY_VERTEX_END_INDEX,
+                                           5, SKETCH_GEOMETRY_VERTEX_END_INDEX))
+    constraints.append(Sketcher.Constraint("Coincident", 5, SKETCH_GEOMETRY_VERTEX_START_INDEX,
+                                           6, SKETCH_GEOMETRY_VERTEX_END_INDEX))
+    constraints.append(Sketcher.Constraint("Coincident", 6, SKETCH_GEOMETRY_VERTEX_START_INDEX,
+                                           1, SKETCH_GEOMETRY_VERTEX_START_INDEX))
+
+    constraints.append(Sketcher.Constraint('DistanceX',
+                                           0, SKETCH_GEOMETRY_VERTEX_END_INDEX,
+                                           0, SKETCH_GEOMETRY_VERTEX_START_INDEX,
+                                           DIMS_PIN_LENGTH))
+    constraints.append(Sketcher.Constraint('DistanceY',
+                                           SKETCH_GEOMETRY_ORIGIN_INDEX, SKETCH_GEOMETRY_VERTEX_START_INDEX,
+                                           0, SKETCH_GEOMETRY_VERTEX_START_INDEX, 0))
+
+    # constraints for profile and construction line
+
+    constraints.append(Sketcher.Constraint('DistanceX',
+                                           1, SKETCH_GEOMETRY_VERTEX_END_INDEX,
+                                           1, SKETCH_GEOMETRY_VERTEX_START_INDEX, DIMS_PIN_COLLAR_DEPTH))
+    constraints.append(Sketcher.Constraint('DistanceY',
+                                           4, SKETCH_GEOMETRY_VERTEX_END_INDEX,
+                                           4, SKETCH_GEOMETRY_VERTEX_START_INDEX,
+                                           DIMS_PIN_OUTER_RADIUS - DIMS_PIN_INNER_RADIUS))
+    constraints.append(Sketcher.Constraint('DistanceX',
+                                           5, SKETCH_GEOMETRY_VERTEX_END_INDEX,
+                                           5, SKETCH_GEOMETRY_VERTEX_START_INDEX, DIMS_PIN_LENGTH))
+    constraints.append(Sketcher.Constraint('DistanceY',
+                                           6, SKETCH_GEOMETRY_VERTEX_END_INDEX,
+                                           6, SKETCH_GEOMETRY_VERTEX_START_INDEX,
+                                           DIMS_PIN_COLLAR_RADIUS - DIMS_PIN_INNER_RADIUS))
+    constraints.append(Sketcher.Constraint('DistanceY',
+                                           SKETCH_GEOMETRY_ORIGIN_INDEX, SKETCH_GEOMETRY_VERTEX_START_INDEX,
+                                           5, SKETCH_GEOMETRY_VERTEX_END_INDEX, DIMS_PIN_INNER_RADIUS))
+
+    # constrain profile and construction line to datum point
+
+    constraints.append(Sketcher.Constraint('DistanceX',
+                                           0, SKETCH_GEOMETRY_VERTEX_START_INDEX,
+                                           SKETCH_GEOMETRY_ORIGIN_INDEX, SKETCH_GEOMETRY_VERTEX_START_INDEX, 0))
+    constraints.append(Sketcher.Constraint('DistanceX',
+                                           1, SKETCH_GEOMETRY_VERTEX_START_INDEX,
+                                           SKETCH_GEOMETRY_ORIGIN_INDEX, SKETCH_GEOMETRY_VERTEX_START_INDEX, 0))
+
+    pin_revolution_sketch.addGeometry(geometries, False)
+    pin_revolution_sketch.addConstraint(constraints)
+
+    # Set construction lines
+    pin_revolution_sketch.toggleConstruction(0)
+
+    doc.recompute()
+
+    pin_revolution = body.newObject("PartDesign::Revolution", label + "_pin_revolution")
+    pin_revolution.Angle = 360
+    pin_revolution.Profile = pin_revolution_sketch
+    pin_revolution.ReferenceAxis = (pin_revolution_sketch, ['Axis0'])
+
+    doc.recompute()
+    pin_revolution_sketch.ViewObject.Visibility = False
+
+    return pin_revolution
+
+
+def _render_pin_flange(label, datum_line, body, doc):
+    Console.PrintMessage("_render_pin_flange({})\n".format(label))
+
+    # path for additive pipe
+
+    pin_pipe_path_sketch = body.newObject("Sketcher::SketchObject", label + "_pin_pipe_path_sketch")
+    pin_pipe_path_sketch.Support = [(datum_line.Support[1][0]), (datum_line, '')]
+    pin_pipe_path_sketch.MapMode = 'OZX'
+    # note 0.005 adjustment to prevent seemingly a bug in freecad rendering
+    pin_pipe_path_sketch.AttachmentOffset = Placement(Vector(0, 0, ((-1 * DIMS_PIN_FLANGE_DEPTH) / 2) - 0.005),
+                                                      Rotation(0, 0, 0))
+
+    geometries = []
+    constraints = []
+
+    geometries.append(Part.Ellipse(Vector(DIMS_PIN_OUTER_RADIUS, 0, 0),
+                                   Vector(0, -1 * (DIMS_PIN_OUTER_RADIUS - DIMS_PIN_FLANGE_HEIGHT), 0),
+                                   Vector(0, 0, 0)))
+
+    pin_pipe_path_sketch.addGeometry(geometries, False)
+    pin_pipe_path_sketch.exposeInternalGeometry(0)
+
+    # constrain ellipse position
+
+    constraints.append(Sketcher.Constraint('Coincident',
+                                           SKETCH_GEOMETRY_ORIGIN_INDEX, SKETCH_GEOMETRY_VERTEX_START_INDEX,
+                                           0, SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX))
+
+    # constrain ellipse shape
+
+    constraints.append(Sketcher.Constraint('Horizontal', 1))
+    constraints.append(Sketcher.Constraint('Distance', 1, 2 * DIMS_PIN_OUTER_RADIUS))
+    constraints.append(Sketcher.Constraint('Distance', 2, 2 * (DIMS_PIN_OUTER_RADIUS - DIMS_PIN_FLANGE_HEIGHT)))
+
+    pin_pipe_path_sketch.addConstraint(constraints)
+
+    doc.recompute()
+
+    # profile for additive pipe
+
+    pin_pipe_profile_sketch = body.newObject("Sketcher::SketchObject", label + "_pin_pipe_profile_sketch")
+    pin_pipe_profile_sketch.Support = [(pin_pipe_path_sketch, 'Edge1')]
+    pin_pipe_profile_sketch.MapMode = 'ObjectXZ'
+
+    geometries = []
+    constraints = []
+
+    geometries.append(Part.Ellipse(Vector(0, DIMS_PIN_FLANGE_DEPTH / 2, 0),
+                                   Vector(-1 * DIMS_PIN_FLANGE_HEIGHT, 0, 0),
+                                   Vector(0, 0, 0)))
+
+    pin_pipe_profile_sketch.addGeometry(geometries, False)
+    pin_pipe_profile_sketch.exposeInternalGeometry(0)
+
+    # constrain ellipse position
+
+    constraints.append(Sketcher.Constraint('DistanceX',
+                                           SKETCH_GEOMETRY_ORIGIN_INDEX, SKETCH_GEOMETRY_VERTEX_START_INDEX,
+                                           0, SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX,
+                                           DIMS_PIN_OUTER_RADIUS))
+    constraints.append(Sketcher.Constraint('DistanceY',
+                                           SKETCH_GEOMETRY_ORIGIN_INDEX, SKETCH_GEOMETRY_VERTEX_START_INDEX,
+                                           0, SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX,
+                                           0))
+
+    # constrain ellipse shape
+
+    constraints.append(Sketcher.Constraint('Horizontal', 2))
+    constraints.append(Sketcher.Constraint('Distance', 1, DIMS_PIN_FLANGE_DEPTH))
+    constraints.append(Sketcher.Constraint('Distance', 2, DIMS_PIN_FLANGE_HEIGHT * 2))
+
+    pin_pipe_profile_sketch.addConstraint(constraints)
+
+    doc.recompute()
+
+    # additive pipe for pin flange
+
+    pin_pipe = body.newObject("PartDesign::AdditivePipe", label + "_pin_pipe")
+    pin_pipe.Profile = pin_pipe_profile_sketch
+    pin_pipe.Spine = pin_pipe_path_sketch
+
+    doc.recompute()
+
+    pin_pipe_path_sketch.ViewObject.Visibility = False
+    pin_pipe_profile_sketch.ViewObject.Visibility = False
+
+    return pin_pipe
+
+
+def _render_pin_notch(label, datum_line, body, doc):
+    Console.PrintMessage("_render_pin_notch({})\n".format(label))
+
+    # sketch for notch
+
+    pin_notch_sketch = body.newObject("Sketcher::SketchObject", label + "_pin_notch_sketch")
+    pin_notch_sketch.Support = [(datum_line.Support[1][0]), (datum_line, '')]
+    pin_notch_sketch.MapMode = 'OYZ'
+    pin_notch_sketch.AttachmentOffset = Placement(Vector(0, 0, DIMS_PIN_OUTER_RADIUS), Rotation(0, 0, 0))
+
+    geometries = []
+    constraints = []
+
+    geometries.append(Part.ArcOfCircle(Part.Circle(Vector(0, -1 * DIMS_PIN_NOTCH_DEPTH, 0),
+                                                   Vector(0, 0, 1),
+                                                   DIMS_PIN_NOTCH_WIDTH / 2),
+                                       math.pi, 0))
+    geometries.append(Part.ArcOfCircle(Part.Circle(Vector(1, -1 * DIMS_PIN_NOTCH_OPENING_FILLET_RADIUS, 0),
+                                                   Vector(0, 0, 1),
+                                                   DIMS_PIN_NOTCH_OPENING_FILLET_RADIUS),
+                                       math.pi / 2, math.pi))
+    geometries.append(Part.ArcOfCircle(Part.Circle(Vector(-1, -1 * DIMS_PIN_NOTCH_OPENING_FILLET_RADIUS, 0),
+                                                   Vector(0, 0, 1),
+                                                   DIMS_PIN_NOTCH_OPENING_FILLET_RADIUS),
+                                       0, math.pi / 2))
+
+    geometries.append(Part.LineSegment(Vector(-1, 0, 0), Vector(-1,
+                                                                -1 * (DIMS_PIN_NOTCH_DEPTH -
+                                                                      DIMS_PIN_NOTCH_OPENING_FILLET_RADIUS -
+                                                                      (DIMS_PIN_NOTCH_WIDTH / 2)), 0)))
+    geometries.append(Part.LineSegment(Vector(1, 0, 0), Vector(1,
+                                                               -1 * (DIMS_PIN_NOTCH_DEPTH -
+                                                                     DIMS_PIN_NOTCH_OPENING_FILLET_RADIUS -
+                                                                     (DIMS_PIN_NOTCH_WIDTH / 2)), 0)))
+    geometries.append(Part.LineSegment(Vector(-1, 0, 0), Vector(1, 0, 0)))
+
+    # connect and position notch shape
+
+    constraints.append(Sketcher.Constraint("Vertical", 3))
+    constraints.append(Sketcher.Constraint("Vertical", 4))
+    constraints.append(Sketcher.Constraint("Horizontal", 5))
+
+    # opening horizontal line
+
+    constraints.append(Sketcher.Constraint('DistanceY',
+                                           5, SKETCH_GEOMETRY_VERTEX_END_INDEX,
+                                           SKETCH_GEOMETRY_ORIGIN_INDEX, SKETCH_GEOMETRY_VERTEX_START_INDEX,
+                                           0))
+
+    # internal notch end
+
+    constraints.append(Sketcher.Constraint('DistanceY',
+                                           0, SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX,
+                                           SKETCH_GEOMETRY_ORIGIN_INDEX, SKETCH_GEOMETRY_VERTEX_START_INDEX,
+                                           DIMS_PIN_NOTCH_DEPTH))
+    constraints.append(Sketcher.Constraint('DistanceY',
+                                           0, SKETCH_GEOMETRY_VERTEX_START_INDEX,
+                                           0, SKETCH_GEOMETRY_VERTEX_END_INDEX,
+                                           0))
+    constraints.append(Sketcher.Constraint('DistanceY',
+                                           0, SKETCH_GEOMETRY_VERTEX_START_INDEX,
+                                           0, SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX,
+                                           0))
+
+    # right opening arc
+
+    constraints.append(Sketcher.Constraint('DistanceX',
+                                           SKETCH_GEOMETRY_ORIGIN_INDEX, SKETCH_GEOMETRY_VERTEX_START_INDEX,
+                                           1, SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX,
+                                           (DIMS_PIN_NOTCH_WIDTH / 2) + DIMS_PIN_NOTCH_OPENING_FILLET_RADIUS))
+    constraints.append(Sketcher.Constraint('DistanceX',
+                                           SKETCH_GEOMETRY_ORIGIN_INDEX, SKETCH_GEOMETRY_VERTEX_START_INDEX,
+                                           1, SKETCH_GEOMETRY_VERTEX_START_INDEX,
+                                           (DIMS_PIN_NOTCH_WIDTH / 2) + DIMS_PIN_NOTCH_OPENING_FILLET_RADIUS))
+    constraints.append(Sketcher.Constraint('DistanceY',
+                                           1, SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX,
+                                           SKETCH_GEOMETRY_ORIGIN_INDEX, SKETCH_GEOMETRY_VERTEX_START_INDEX,
+                                           DIMS_PIN_NOTCH_OPENING_FILLET_RADIUS))
+    constraints.append(Sketcher.Constraint('DistanceY',
+                                           1, SKETCH_GEOMETRY_VERTEX_END_INDEX,
+                                           SKETCH_GEOMETRY_ORIGIN_INDEX, SKETCH_GEOMETRY_VERTEX_START_INDEX,
+                                           DIMS_PIN_NOTCH_OPENING_FILLET_RADIUS))
+
+    # left opening arc
+
+    constraints.append(Sketcher.Constraint('DistanceX',
+                                           2, SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX,
+                                           SKETCH_GEOMETRY_ORIGIN_INDEX, SKETCH_GEOMETRY_VERTEX_START_INDEX,
+                                           (DIMS_PIN_NOTCH_WIDTH / 2) + DIMS_PIN_NOTCH_OPENING_FILLET_RADIUS))
+    constraints.append(Sketcher.Constraint('DistanceX',
+                                           2, SKETCH_GEOMETRY_VERTEX_END_INDEX,
+                                           SKETCH_GEOMETRY_ORIGIN_INDEX, SKETCH_GEOMETRY_VERTEX_START_INDEX,
+                                           (DIMS_PIN_NOTCH_WIDTH / 2) + DIMS_PIN_NOTCH_OPENING_FILLET_RADIUS))
+    constraints.append(Sketcher.Constraint('DistanceY',
+                                           2, SKETCH_GEOMETRY_VERTEX_CENTRE_INDEX,
+                                           SKETCH_GEOMETRY_ORIGIN_INDEX, SKETCH_GEOMETRY_VERTEX_START_INDEX,
+                                           DIMS_PIN_NOTCH_OPENING_FILLET_RADIUS))
+    constraints.append(Sketcher.Constraint('DistanceY',
+                                           2, SKETCH_GEOMETRY_VERTEX_START_INDEX,
+                                           SKETCH_GEOMETRY_ORIGIN_INDEX, SKETCH_GEOMETRY_VERTEX_START_INDEX,
+                                           DIMS_PIN_NOTCH_OPENING_FILLET_RADIUS))
+
+    # join geometries
+
+    constraints.append(Sketcher.Constraint("Coincident",
+                                           5, SKETCH_GEOMETRY_VERTEX_START_INDEX,
+                                           2, SKETCH_GEOMETRY_VERTEX_END_INDEX))
+    constraints.append(Sketcher.Constraint("Coincident",
+                                           5, SKETCH_GEOMETRY_VERTEX_END_INDEX,
+                                           1, SKETCH_GEOMETRY_VERTEX_START_INDEX))
+    constraints.append(Sketcher.Constraint("Coincident",
+                                           1, SKETCH_GEOMETRY_VERTEX_END_INDEX,
+                                           4, SKETCH_GEOMETRY_VERTEX_START_INDEX))
+    constraints.append(Sketcher.Constraint("Coincident",
+                                           2, SKETCH_GEOMETRY_VERTEX_START_INDEX,
+                                           3, SKETCH_GEOMETRY_VERTEX_START_INDEX))
+    constraints.append(Sketcher.Constraint("Coincident",
+                                           4, SKETCH_GEOMETRY_VERTEX_END_INDEX,
+                                           0, SKETCH_GEOMETRY_VERTEX_END_INDEX))
+    constraints.append(Sketcher.Constraint("Coincident",
+                                           3, SKETCH_GEOMETRY_VERTEX_END_INDEX,
+                                           0, SKETCH_GEOMETRY_VERTEX_START_INDEX))
+
+    pin_notch_sketch.addGeometry(geometries, False)
+    pin_notch_sketch.addConstraint(constraints)
+
+    doc.recompute()
+
+    # pocket for notch
+
+    pin_notch_pocket = body.newObject("PartDesign::Pocket", label + "_pin_notch_pocket")
+    pin_notch_pocket.Type = PAD_TYPE_DIMENSION
+    pin_notch_pocket.Profile = pin_notch_sketch
+    pin_notch_pocket.Length = DIMS_PIN_OUTER_RADIUS * 2
+
+    doc.recompute()
+
+    pin_notch_sketch.ViewObject.Visibility = False
+
+    return pin_notch_pocket
+
+
+def render_pin(label, datum_line, body, doc):
+    Console.PrintMessage("render_pin()\n")
+
+    pin_revolution = _render_pin_revolution(label, datum_line, body, doc)
+
+    pin_flange = _render_pin_flange(label, datum_line, body, doc)
+
+    pin_notch_pocket = _render_pin_notch(label, datum_line, body, doc)
+
+    return [pin_revolution, pin_flange, pin_notch_pocket]
