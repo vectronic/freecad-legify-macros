@@ -35,12 +35,21 @@ to create parametric models in FreeCAD is quite possibly insane!
 
 ## Usage
 
+### Create a new brick model
 1. Create a new document
 1. Run the `legify-brick.FCMacro`
 1. Modify parameters as desired in the popup dialog 
 1. Click OK
 1. Wait for a lot of sketches, constraints, pads, pockets and fillets to be rendered...
 1. Admire the resulting beauty! 
+
+### Add a technic pin to the face of a body
+1. Within the Part Design workbench, create a body.
+2. Create a datum point on an existing face representing the centre point of the base of the pin.
+3. Create a datum point extended 8mm from the normal to the face representing the centre point of the tip of the pin.
+4. Create a datum line supported by the base datum point and the tip datum point in that order.
+5. Select the body and select the datum line.
+6. Run the `legify-technic-pin.FCMacro`
 
 ## TODO
 
