@@ -25,19 +25,31 @@ to create parametric models in FreeCAD is quite possibly insane!
 
     `git clone https://github.com/vectronic/freecad-legify-macros.git`
     
-1. Link the cloned folder and macro file into the FreeCAD macros directory:
+1. Link the cloned folder and macro files into the FreeCAD macros directory:
 
-       ln -s <absolute path of cloned repository>/legify-brick.FCMacro <absolute path of user preferences folder>/FreeCAD/Macro/
        ln -s <absolute path of cloned repository>/Legify <absolute path of user preferences folder>/FreeCAD/Macro/
+       ln -s <absolute path of cloned repository>/legify-brick.FCMacro <absolute path of user preferences folder>/FreeCAD/Macro/
+       ln -s <absolute path of cloned repository>/legify-technic-pin.FCMacro <absolute path of user preferences folder>/FreeCAD/Macro/
+
+**NOTE**: On MacOS the typical location for the user preferences folder is `/Users/<username>/Library/Application\ Support`.
 
 ## Usage
 
+### Create a new brick model
 1. Create a new document
 1. Run the `legify-brick.FCMacro`
 1. Modify parameters as desired in the popup dialog 
 1. Click OK
-1. Wait for for a lot of sketches, constraints, pads, pockets and fillets to be rendered...
+1. Wait for a lot of sketches, constraints, pads, pockets and fillets to be rendered...
 1. Admire the resulting beauty! 
+
+### Add a technic pin to the face of a body
+1. Within the Part Design workbench, create a body.
+2. Create a datum point on an existing face representing the centre point of the base of the pin.
+3. Create a datum point extended 8mm from the normal to the face representing the centre point of the tip of the pin.
+4. Create a datum line supported by the base datum point and the tip datum point in that order.
+5. Select the body and select the datum line.
+6. Run the `legify-technic-pin.FCMacro`
 
 ## TODO
 
