@@ -26,18 +26,36 @@ if not Gui.activeDocument():
 
 selection = Gui.Selection.getSelection()
 
+if not selection:
+
+    Console.PrintMessage("No selection!\n")
+    dialog = QMessageBox(QMessageBox.Warning, 'No selection!', "Please select a Body and Datum Line!")
+    dialog.setWindowModality(Qt.ApplicationModal)
+    dialog.exec_()
+
+    exit(1)
+
+if not isinstance(selection, list) or len(selection) < 2:
+
+    Console.PrintMessage("Only one item selected!\n")
+    dialog = QMessageBox(QMessageBox.Warning, 'Only one item selected!', "Please select a Body and Datum Line!")
+    dialog.setWindowModality(Qt.ApplicationModal)
+    dialog.exec_()
+
+    exit(1)
+
 if not selection[0]:
 
-    Console.PrintMessage("No selected body!\n")
-    dialog = QMessageBox(QMessageBox.Warning, 'No selected body!', "There is no selected body!")
+    Console.PrintMessage("No selected Body!\n")
+    dialog = QMessageBox(QMessageBox.Warning, 'No selected Body!', "Please select a Body and Datum Line!")
     dialog.setWindowModality(Qt.ApplicationModal)
     dialog.exec_()
 
     exit(1)
 
 if not selection[1]:
-    Console.PrintMessage("No selected datum line!\n")
-    dialog = QMessageBox(QMessageBox.Warning, 'No selected datum line!', "There is no selected datum line!")
+    Console.PrintMessage("No selected Datum Line!\n")
+    dialog = QMessageBox(QMessageBox.Warning, 'No selected Datum Line!', "Please select a Body and Datum Line!")
     dialog.setWindowModality(Qt.ApplicationModal)
     dialog.exec_()
 
