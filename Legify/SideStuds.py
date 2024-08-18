@@ -32,7 +32,7 @@ class SideStudsRenderer:
 
         side_studs_outside_pad_sketch = self.brick.newObject("Sketcher::SketchObject",
                                                              label + "_side_studs_outside_pad_sketch")
-        side_studs_outside_pad_sketch.Support = (plane, '')
+        side_studs_outside_pad_sketch.AttachmentSupport = (plane, '')
         side_studs_outside_pad_sketch.MapMode = 'FlatFace'
 
         add_circle_to_sketch(side_studs_outside_pad_sketch, DIMS_STUD_OUTER_RADIUS, 0,
@@ -75,7 +75,7 @@ class SideStudsRenderer:
 
         side_studs_outside_pocket_sketch = self.brick.newObject("Sketcher::SketchObject",
                                                                 label + "_side_studs_outside_pocket_sketch")
-        side_studs_outside_pocket_sketch.Support = (plane, '')
+        side_studs_outside_pocket_sketch.AttachmentSupport = (plane, '')
         side_studs_outside_pocket_sketch.MapMode = 'FlatFace'
 
         add_inner_circle_with_flats_to_sketch(side_studs_outside_pocket_sketch, DIMS_STUD_OUTER_RADIUS,
@@ -109,7 +109,7 @@ class SideStudsRenderer:
 
         side_studs_inside_pocket_sketch = self.brick.newObject("Sketcher::SketchObject",
                                                                label + "_side_studs_inside_pocket_sketch")
-        side_studs_inside_pocket_sketch.Support = (plane, '')
+        side_studs_inside_pocket_sketch.AttachmentSupport = (plane, '')
         side_studs_inside_pocket_sketch.MapMode = 'FlatFace'
 
         add_inner_circle_with_flats_to_sketch(side_studs_inside_pocket_sketch, DIMS_STUD_OUTER_RADIUS,

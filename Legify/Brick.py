@@ -312,7 +312,7 @@ class BrickRenderer:
         # Create top datum plane
         top_datum_plane = context.brick.newObject("PartDesign::Plane", "top_datum_plane")
         top_datum_plane.MapReversed = False
-        top_datum_plane.Support = [(context.brick.Origin.OriginFeatures[ORIGIN_XY_PLANE_INDEX], '')]
+        top_datum_plane.AttachmentSupport = [(context.brick.Origin.OriginFeatures[ORIGIN_XY_PLANE_INDEX], '')]
         top_datum_plane.MapMode = 'FlatFace'
         top_datum_plane.AttachmentOffset = Placement(Vector(0, 0, (self.height * DIMS_PLATE_HEIGHT)), Rotation(0, 0, 0))
         top_datum_plane.ViewObject.Visibility = False
@@ -321,7 +321,7 @@ class BrickRenderer:
         # Create front datum plane
         front_datum_plane = context.brick.newObject("PartDesign::Plane", "front_datum_plane")
         front_datum_plane.MapReversed = False
-        front_datum_plane.Support = [(context.brick.Origin.OriginFeatures[ORIGIN_XZ_PLANE_INDEX], '')]
+        front_datum_plane.AttachmentSupport = [(context.brick.Origin.OriginFeatures[ORIGIN_XZ_PLANE_INDEX], '')]
         front_datum_plane.MapMode = 'FlatFace'
         front_datum_plane.AttachmentOffset = Placement(
             Vector(0, 0, (DIMS_STUD_SPACING / 2) - DIMS_BRICK_OUTER_REDUCTION), Rotation(0, 0, 0))
@@ -331,7 +331,7 @@ class BrickRenderer:
         # Create back datum plane
         back_datum_plane = context.brick.newObject("PartDesign::Plane", "back_datum_plane")
         back_datum_plane.MapReversed = False
-        back_datum_plane.Support = [(context.brick.Origin.OriginFeatures[ORIGIN_XZ_PLANE_INDEX], '')]
+        back_datum_plane.AttachmentSupport = [(context.brick.Origin.OriginFeatures[ORIGIN_XZ_PLANE_INDEX], '')]
         back_datum_plane.MapMode = 'FlatFace'
         back_datum_plane.AttachmentOffset = Placement(
             Vector(0, 0, -1 *
@@ -343,7 +343,7 @@ class BrickRenderer:
         # Create left datum plane
         left_datum_plane = context.brick.newObject("PartDesign::Plane", "left_datum_plane")
         left_datum_plane.MapReversed = False
-        left_datum_plane.Support = [(context.brick.Origin.OriginFeatures[ORIGIN_YZ_PLANE_INDEX], '')]
+        left_datum_plane.AttachmentSupport = [(context.brick.Origin.OriginFeatures[ORIGIN_YZ_PLANE_INDEX], '')]
         left_datum_plane.MapMode = 'FlatFace'
         left_datum_plane.AttachmentOffset = Placement(
             Vector(0, 0, -1 * ((DIMS_STUD_SPACING / 2) - DIMS_BRICK_OUTER_REDUCTION)),
@@ -354,7 +354,7 @@ class BrickRenderer:
         # Create right datum plane
         right_datum_plane = context.brick.newObject("PartDesign::Plane", "right_datum_plane")
         right_datum_plane.MapReversed = False
-        right_datum_plane.Support = [(context.brick.Origin.OriginFeatures[ORIGIN_YZ_PLANE_INDEX], '')]
+        right_datum_plane.AttachmentSupport = [(context.brick.Origin.OriginFeatures[ORIGIN_YZ_PLANE_INDEX], '')]
         right_datum_plane.MapMode = 'FlatFace'
         right_datum_plane.AttachmentOffset = Placement(
             Vector(0, 0,
@@ -366,7 +366,7 @@ class BrickRenderer:
         # Create top inside datum plane
         top_inside_datum_plane = context.brick.newObject("PartDesign::Plane", "top_inside_datum_plane")
         top_inside_datum_plane.MapReversed = False
-        top_inside_datum_plane.Support = [(context.brick.Origin.OriginFeatures[ORIGIN_XY_PLANE_INDEX], '')]
+        top_inside_datum_plane.AttachmentSupport = [(context.brick.Origin.OriginFeatures[ORIGIN_XY_PLANE_INDEX], '')]
         top_inside_datum_plane.MapMode = 'FlatFace'
         top_inside_datum_plane.AttachmentOffset = Placement(
             Vector(0, 0, (self.height * DIMS_PLATE_HEIGHT) - DIMS_TOP_THICKNESS), Rotation(0, 0, 0))
@@ -376,7 +376,7 @@ class BrickRenderer:
         # Create front inside datum plane
         front_inside_datum_plane = context.brick.newObject("PartDesign::Plane", "front_inside_datum_plane")
         front_inside_datum_plane.MapReversed = False
-        front_inside_datum_plane.Support = [(context.brick.Origin.OriginFeatures[ORIGIN_XZ_PLANE_INDEX], '')]
+        front_inside_datum_plane.AttachmentSupport = [(context.brick.Origin.OriginFeatures[ORIGIN_XZ_PLANE_INDEX], '')]
         front_inside_datum_plane.MapMode = 'FlatFace'
         front_inside_datum_plane.AttachmentOffset = Placement(
             Vector(0, 0, (DIMS_STUD_SPACING / 2) - DIMS_RIBBED_SIDE_THICKNESS - DIMS_BRICK_OUTER_REDUCTION),
@@ -387,7 +387,7 @@ class BrickRenderer:
         # Create back inside datum plane
         back_inside_datum_plane = context.brick.newObject("PartDesign::Plane", "back_inside_datum_plane")
         back_inside_datum_plane.MapReversed = False
-        back_inside_datum_plane.Support = [(context.brick.Origin.OriginFeatures[ORIGIN_XZ_PLANE_INDEX], '')]
+        back_inside_datum_plane.AttachmentSupport = [(context.brick.Origin.OriginFeatures[ORIGIN_XZ_PLANE_INDEX], '')]
         back_inside_datum_plane.MapMode = 'FlatFace'
         back_inside_datum_plane.AttachmentOffset = Placement(
             Vector(0, 0, -1 * ((self.depth - 1) * DIMS_STUD_SPACING +
@@ -399,7 +399,7 @@ class BrickRenderer:
         # Create left inside datum plane
         left_inside_datum_plane = context.brick.newObject("PartDesign::Plane", "left_inside_datum_plane")
         left_inside_datum_plane.MapReversed = False
-        left_inside_datum_plane.Support = [(context.brick.Origin.OriginFeatures[ORIGIN_YZ_PLANE_INDEX], '')]
+        left_inside_datum_plane.AttachmentSupport = [(context.brick.Origin.OriginFeatures[ORIGIN_YZ_PLANE_INDEX], '')]
         left_inside_datum_plane.MapMode = 'FlatFace'
         left_inside_datum_plane.AttachmentOffset = Placement(
             Vector(0, 0, -1 * ((DIMS_STUD_SPACING / 2) - DIMS_RIBBED_SIDE_THICKNESS - DIMS_BRICK_OUTER_REDUCTION)),
@@ -410,7 +410,7 @@ class BrickRenderer:
         # Create right inside datum plane
         right_inside_datum_plane = context.brick.newObject("PartDesign::Plane", "right_inside_datum_plane")
         right_inside_datum_plane.MapReversed = False
-        right_inside_datum_plane.Support = [(context.brick.Origin.OriginFeatures[ORIGIN_YZ_PLANE_INDEX], '')]
+        right_inside_datum_plane.AttachmentSupport = [(context.brick.Origin.OriginFeatures[ORIGIN_YZ_PLANE_INDEX], '')]
         right_inside_datum_plane.MapMode = 'FlatFace'
         right_inside_datum_plane.AttachmentOffset = Placement(
             Vector(0, 0, (self.width - 1) * DIMS_STUD_SPACING +
@@ -422,7 +422,7 @@ class BrickRenderer:
         # Create depth mirror datum plane
         depth_mirror_datum_plane = context.brick.newObject("PartDesign::Plane", "depth_mirror_datum_plane")
         depth_mirror_datum_plane.MapReversed = False
-        depth_mirror_datum_plane.Support = [(context.brick.Origin.OriginFeatures[ORIGIN_XZ_PLANE_INDEX], '')]
+        depth_mirror_datum_plane.AttachmentSupport = [(context.brick.Origin.OriginFeatures[ORIGIN_XZ_PLANE_INDEX], '')]
         depth_mirror_datum_plane.MapMode = 'FlatFace'
         depth_mirror_datum_plane.AttachmentOffset = Placement(
             Vector(0, 0, -1 * ((self.depth - 1) * DIMS_STUD_SPACING / 2)), Rotation(0, 0, 0))

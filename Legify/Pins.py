@@ -50,7 +50,7 @@ class PinsRenderer:
 
         pin_base_datum_point = self.brick.newObject('PartDesign::Point',
                                                     'pin_base_{}_datum_point'.format(label))
-        pin_base_datum_point.Support = [(base_plane, '')]
+        pin_base_datum_point.AttachmentSupport = [(base_plane, '')]
         pin_base_datum_point.MapMode = 'ObjectOrigin'
         pin_base_datum_point.ViewObject.Visibility = False
         if self.pins_offset:
@@ -67,7 +67,7 @@ class PinsRenderer:
 
         pin_tip_datum_point = self.brick.newObject('PartDesign::Point',
                                                    'pin_tip_{}_datum_point'.format(label))
-        pin_tip_datum_point.Support = [(base_plane, '')]
+        pin_tip_datum_point.AttachmentSupport = [(base_plane, '')]
         pin_tip_datum_point.MapMode = 'ObjectOrigin'
         pin_tip_datum_point.ViewObject.Visibility = False
         if self.pins_offset:
@@ -79,7 +79,7 @@ class PinsRenderer:
                                                              Rotation(0, 0, 0))
 
         pin_datum_line = self.brick.newObject('PartDesign::Line', 'pin_{}_datum_line'.format(label))
-        pin_datum_line.Support = [(pin_base_datum_point, ''), (pin_tip_datum_point, '')]
+        pin_datum_line.AttachmentSupport = [(pin_base_datum_point, ''), (pin_tip_datum_point, '')]
         pin_datum_line.MapMode = 'TwoPointLine'
         pin_datum_line.ViewObject.Visibility = False
 

@@ -87,7 +87,7 @@ class HolesRenderer:
         # holes pad with cross-section meeting inside of body
 
         holes_pad_sketch = self.brick.newObject("Sketcher::SketchObject", "holes_pad_sketch")
-        holes_pad_sketch.Support = (self.front_inside_datum_plane, '')
+        holes_pad_sketch.AttachmentSupport = (self.front_inside_datum_plane, '')
         holes_pad_sketch.MapMode = 'FlatFace'
 
         geometries = []
@@ -115,7 +115,7 @@ class HolesRenderer:
         # holes pocket
 
         holes_pocket_sketch = self.brick.newObject("Sketcher::SketchObject", "holes_pocket_sketch")
-        holes_pocket_sketch.Support = (self.front_datum_plane, '')
+        holes_pocket_sketch.AttachmentSupport = (self.front_datum_plane, '')
         holes_pocket_sketch.MapMode = 'FlatFace'
 
         # TODO: if/else render axle cross-section
@@ -144,7 +144,7 @@ class HolesRenderer:
 
             holes_counterbore_pocket_sketch = self.brick.newObject("Sketcher::SketchObject",
                                                                    "holes_counterbore_pocket_sketch")
-            holes_counterbore_pocket_sketch.Support = (holes_pocket_sketch, '')
+            holes_counterbore_pocket_sketch.AttachmentSupport = (holes_pocket_sketch, '')
             holes_counterbore_pocket_sketch.MapMode = 'ObjectXY'
 
             add_circle_to_sketch(holes_counterbore_pocket_sketch, DIMS_TECHNIC_HOLE_COUNTERBORE_RADIUS, hole_offset,
