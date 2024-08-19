@@ -29,7 +29,7 @@ class TopStudsRenderer:
         # top studs outside pad
 
         top_studs_outside_pad_sketch = self.brick.newObject("Sketcher::SketchObject", "top_studs_outside_pad_sketch")
-        top_studs_outside_pad_sketch.Support = (self.top_datum_plane, '')
+        top_studs_outside_pad_sketch.AttachmentSupport = (self.top_datum_plane, '')
         top_studs_outside_pad_sketch.MapMode = 'FlatFace'
 
         add_circle_to_sketch(top_studs_outside_pad_sketch, DIMS_STUD_OUTER_RADIUS, initial_width_offset,
@@ -79,7 +79,7 @@ class TopStudsRenderer:
 
             top_studs_outside_pocket_sketch = self.brick.newObject("Sketcher::SketchObject",
                                                                    "top_studs_outside_pocket_sketch")
-            top_studs_outside_pocket_sketch.Support = (self.top_datum_plane, '')
+            top_studs_outside_pocket_sketch.AttachmentSupport = (self.top_datum_plane, '')
             top_studs_outside_pocket_sketch.MapMode = 'FlatFace'
 
             add_inner_circle_with_flats_to_sketch(top_studs_outside_pocket_sketch, DIMS_STUD_OUTER_RADIUS,
@@ -117,7 +117,7 @@ class TopStudsRenderer:
 
         top_studs_inside_pocket_sketch = self.brick \
             .newObject("Sketcher::SketchObject", "top_studs_inside_pocket_sketch")
-        top_studs_inside_pocket_sketch.Support = (self.top_inside_datum_plane, '')
+        top_studs_inside_pocket_sketch.AttachmentSupport = (self.top_inside_datum_plane, '')
         top_studs_inside_pocket_sketch.MapMode = 'FlatFace'
 
         add_circle_to_sketch(top_studs_inside_pocket_sketch, DIMS_STUD_INSIDE_HOLE_RADIUS,

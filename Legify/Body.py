@@ -204,7 +204,7 @@ class BodyRenderer(object):
         # body pad
 
         body_pad_sketch = self.brick.newObject("Sketcher::SketchObject", "body_pad_sketch")
-        body_pad_sketch.Support = (self.xy_plane, '')
+        body_pad_sketch.AttachmentSupport = (self.xy_plane, '')
         body_pad_sketch.MapMode = 'ObjectXY'
 
         body_pad_sketch.addGeometry([
@@ -278,7 +278,7 @@ class BodyRenderer(object):
         # body pocket
 
         body_pocket_sketch = self.brick.newObject("Sketcher::SketchObject", "body_pocket_sketch")
-        body_pocket_sketch.Support = (body_pad_sketch, '')
+        body_pocket_sketch.AttachmentSupport = (body_pad_sketch, '')
         body_pocket_sketch.MapMode = 'ObjectXY'
 
         side_ribs = self.height > 2 and self.depth > 1 and self.width > 1
@@ -472,7 +472,7 @@ class BodyRenderer(object):
             # front tube ribs pad
 
             front_tube_ribs_sketch = self.brick.newObject("Sketcher::SketchObject", "front_tube_ribs_sketch")
-            front_tube_ribs_sketch.Support = (self.front_inside_datum_plane, '')
+            front_tube_ribs_sketch.AttachmentSupport = (self.front_inside_datum_plane, '')
             front_tube_ribs_sketch.MapMode = 'FlatFace'
 
             # add top_inside_datum_plane to sketch as an edge so that it can be referenced
@@ -515,7 +515,7 @@ class BodyRenderer(object):
             # side tube ribs pad
 
             side_tube_ribs_sketch = self.brick.newObject("Sketcher::SketchObject", "side_tube_ribs_sketch")
-            side_tube_ribs_sketch.Support = (self.left_inside_datum_plane, '')
+            side_tube_ribs_sketch.AttachmentSupport = (self.left_inside_datum_plane, '')
             side_tube_ribs_sketch.MapMode = 'FlatFace'
 
             # add top_inside_datum_plane to sketch as an edge so that it can be referenced
@@ -558,7 +558,7 @@ class BodyRenderer(object):
         # tubes pad
 
         tubes_pad_sketch = self.brick.newObject("Sketcher::SketchObject", "tubes_pad_sketch")
-        tubes_pad_sketch.Support = (body_pad_sketch, '')
+        tubes_pad_sketch.AttachmentSupport = (body_pad_sketch, '')
         tubes_pad_sketch.MapMode = 'ObjectXY'
         tubes_pad_sketch.Placement = Placement(Vector(0, 0, DIMS_STICK_AND_TUBE_BOTTOM_INSET),
                                                Rotation(Vector(0, 0, 1), 0))
@@ -591,7 +591,7 @@ class BodyRenderer(object):
         # tubes pocket
 
         tubes_pocket_sketch = self.brick.newObject("Sketcher::SketchObject", "tubes_pocket_sketch")
-        tubes_pocket_sketch.Support = (self.top_inside_datum_plane, '')
+        tubes_pocket_sketch.AttachmentSupport = (self.top_inside_datum_plane, '')
         tubes_pocket_sketch.MapMode = 'FlatFace'
 
         add_inner_circle_with_flats_to_sketch(tubes_pocket_sketch, DIMS_TUBE_OUTER_RADIUS,
@@ -625,9 +625,9 @@ class BodyRenderer(object):
 
         stick_ribs_sketch = self.brick.newObject("Sketcher::SketchObject", "stick_ribs_sketch")
         if self.width > 1:
-            stick_ribs_sketch.Support = (self.front_inside_datum_plane, '')
+            stick_ribs_sketch.AttachmentSupport = (self.front_inside_datum_plane, '')
         else:
-            stick_ribs_sketch.Support = (self.left_inside_datum_plane, '')
+            stick_ribs_sketch.AttachmentSupport = (self.left_inside_datum_plane, '')
         stick_ribs_sketch.MapMode = 'FlatFace'
 
         # add top_inside_datum_plane to sketch as an edge so that it can be referenced
@@ -687,7 +687,7 @@ class BodyRenderer(object):
         # sticks pad
 
         sticks_pad_sketch = self.brick.newObject("Sketcher::SketchObject", "sticks_pad_sketch")
-        sticks_pad_sketch.Support = (body_pad_sketch, '')
+        sticks_pad_sketch.AttachmentSupport = (body_pad_sketch, '')
         sticks_pad_sketch.MapMode = 'ObjectXY'
         sticks_pad_sketch.Placement = Placement(Vector(0, 0, DIMS_STICK_AND_TUBE_BOTTOM_INSET),
                                                 Rotation(Vector(0, 0, 1), 0))
@@ -738,7 +738,7 @@ class BodyRenderer(object):
         # sticks pocket
 
         sticks_pocket_sketch = self.brick.newObject("Sketcher::SketchObject", "sticks_pocket_sketch")
-        sticks_pocket_sketch.Support = (self.top_inside_datum_plane, '')
+        sticks_pocket_sketch.AttachmentSupport = (self.top_inside_datum_plane, '')
         sticks_pocket_sketch.MapMode = 'FlatFace'
 
         geometries = []

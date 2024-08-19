@@ -449,7 +449,7 @@ def _render_pin_revolution(label, datum_line, body, doc):
     Console.PrintMessage("_render_pin_revolution({})\n".format(label))
 
     pin_revolution_sketch = body.newObject("Sketcher::SketchObject", label + "_pin_revolution_sketch")
-    pin_revolution_sketch.Support = [(datum_line, '')]
+    pin_revolution_sketch.AttachmentSupport = [(datum_line, '')]
     pin_revolution_sketch.MapMode = 'ObjectXY'
     pin_revolution_sketch.AttachmentOffset = Placement(Vector(0, 0, 0), Rotation(0, 90, 0))
 
@@ -558,7 +558,7 @@ def _render_pin_flange(label, datum_line, body, doc):
     # path for additive pipe
 
     pin_pipe_path_sketch = body.newObject("Sketcher::SketchObject", label + "_pin_pipe_path_sketch")
-    pin_pipe_path_sketch.Support = [(datum_line.Support[1][0]), (datum_line, '')]
+    pin_pipe_path_sketch.AttachmentSupport = [(datum_line.AttachmentSupport[1][0]), (datum_line, '')]
     pin_pipe_path_sketch.MapMode = 'OZX'
     # note 0.005 adjustment to prevent seemingly a bug in freecad rendering
     pin_pipe_path_sketch.AttachmentOffset = Placement(Vector(0, 0, ((-1 * DIMS_PIN_FLANGE_DEPTH) / 2) - 0.005),
@@ -593,7 +593,7 @@ def _render_pin_flange(label, datum_line, body, doc):
     # profile for additive pipe
 
     pin_pipe_profile_sketch = body.newObject("Sketcher::SketchObject", label + "_pin_pipe_profile_sketch")
-    pin_pipe_profile_sketch.Support = [(pin_pipe_path_sketch, 'Edge1')]
+    pin_pipe_profile_sketch.AttachmentSupport = [(pin_pipe_path_sketch, 'Edge1')]
     pin_pipe_profile_sketch.MapMode = 'ObjectXZ'
 
     geometries = []
@@ -647,7 +647,7 @@ def _render_pin_notch(label, datum_line, body, doc):
     # sketch for notch
 
     pin_notch_sketch = body.newObject("Sketcher::SketchObject", label + "_pin_notch_sketch")
-    pin_notch_sketch.Support = [(datum_line.Support[1][0]), (datum_line, '')]
+    pin_notch_sketch.AttachmentSupport = [(datum_line.AttachmentSupport[1][0]), (datum_line, '')]
     pin_notch_sketch.MapMode = 'OYZ'
     pin_notch_sketch.AttachmentOffset = Placement(Vector(0, 0, DIMS_PIN_OUTER_RADIUS), Rotation(0, 0, 0))
 
